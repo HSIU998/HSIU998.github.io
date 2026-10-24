@@ -457,7 +457,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <rect class="box strong" x="20" y="152" width="680" height="240" rx="8"/><text class="bt" x="36" y="176">一筆焦點時刻（寫完不能改）</text>
 <rect class="cell" x="32" y="188" width="322" height="92" rx="6"/><text class="bt" x="46" y="212">什麼時候</text><text class="bs" x="46" y="234">紀元名稱</text><text class="bs" x="46" y="252">年份起訖</text><rect class="cell" x="366" y="188" width="322" height="92" rx="6"/><text class="bt" x="380" y="212">為什麼被挑出</text><text class="bs" x="380" y="234">規則類型：上面四種之一；顯著度 0～1</text><text class="bs" x="380" y="252">≥ 0.70 主線、≥ 0.40 支線、其餘背景</text><rect class="cell" x="32" y="290" width="322" height="92" rx="6"/><text class="bt" x="46" y="314">因果描述</text><text class="bs" x="46" y="336">起因、呈現了什麼、後果</text><text class="bs" x="46" y="354">程式把數字套進固定句子；後果看</text><text class="bs" x="46" y="372">下一個紀元的失衡變多還是變少</text><rect class="cell" x="366" y="290" width="322" height="92" rx="6"/><text class="bt" x="380" y="314">數據依據</text><text class="bs" x="380" y="336">觸發規則的那幾個數字</text><text class="bs" x="380" y="354">（例：失衡前後的分數）</text><text class="bs" x="380" y="372">焦點靈魂那類多一個靈魂 ID</text>
 <line class="flow" x1="360" y1="392" x2="360" y2="414" stroke-dasharray="4 3"/>
-<rect class="box soft" x="20" y="414" width="680" height="76" rx="8"/><text class="bt" x="36" y="438">要接到遊戲畫面，還缺兩個欄位</text><text class="bs" x="36" y="460">在哪：沒有座標欄位，一筆就是整個紀元、整個世界。</text><text class="bs" x="36" y="478">誰：只有焦點靈魂那類事件帶 ID，其他三類沒有人物。</text>
+<rect class="box soft" x="20" y="414" width="680" height="76" rx="8"/><text class="bt" x="36" y="438">對照設計目標（從個體實際做出的因果累積資料），還缺兩個欄位</text><text class="bs" x="36" y="460">在哪：沒有座標欄位，一筆就是整個紀元、整個世界。</text><text class="bs" x="36" y="478">誰：只有焦點靈魂那類事件帶 ID，其他三類追不到是哪個個體。</text>
 </svg></div><figcaption>焦點時刻的欄位，照程式碼（focus_history.py 的 FocusMoment）畫；沒有跑新的模擬，也沒有放任何一筆內容。世界模擬目前沒有接到日常系統。</figcaption></figure><section id="a-worldtree">
     <header>
       <span class="label">附錄 3 · WorldTree</span>
@@ -648,7 +648,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
       </ul>
     </div>
     <a class="backtop" href="#top">回到頁首 ↑</a>
-  </section><p class="caption">應徵遊戲企劃時，規則和參數表的寫法可以看這頁。</p>
+  </section>
 </div>
 <script>
 (function () {
