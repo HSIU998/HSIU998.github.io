@@ -1,0 +1,684 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="description" content="鄭孟修設計的世界模擬引擎「世界樹」：只定規則、不寫劇本，讓世界自己長出來。">
+<title>世界樹｜鄭孟修</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: equipment nameplate header → architecture as the centerpiece (expandable) → machine → field reports (異常處理單) → channel → experience */
+:root {
+  --bg: #f3f5f7;
+  --panel: #ffffff;
+  --ink: #17202a;
+  --muted: #5b6875;
+  --line: #d5dce3;
+  --steel: #2f4a63;
+  --lamp: #c77a12;
+  --ok: #2e7d4f;
+  --leaf: #2f6b52;
+  --draft-bg: #fff4d6;
+  --draft-ink: #7a5300;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --panel: #18202a; --ink: #e6ebf0; --muted: #9aa8b5; --line: #2c3946;
+    --steel: #8fb3d4; --lamp: #e9a13b; --ok: #5cc18a; --leaf: #6fbf98; --draft-bg: #3a2f12; --draft-ink: #f3cf7a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --panel: #18202a; --ink: #e6ebf0; --muted: #9aa8b5; --line: #2c3946;
+  --steel: #8fb3d4; --lamp: #e9a13b; --ok: #5cc18a; --leaf: #6fbf98; --draft-bg: #3a2f12; --draft-ink: #f3cf7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--steel); }
+a:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); }
+.label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* draft markers */
+.draft { background: var(--draft-bg); color: var(--draft-ink); border-radius: 3px; padding: 0 5px; font-size: .9em; }
+body.clean .draft-only { display: none; }
+body.clean .draft { background: transparent; color: inherit; padding: 0; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; font-size: 14px; color: var(--muted); }
+.toolbar label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+
+/* nameplate */
+.plate { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 28px; }
+.plate h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 900; letter-spacing: .02em; }
+.plate .role { font-size: 18px; font-weight: 500; color: var(--steel); margin-top: 6px; }
+.plate .summary { margin-top: 16px; max-width: 60ch; }
+.plate dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; align-content: start; }
+.plate dt { font-family: var(--font-mono); color: var(--muted); font-size: 12px; letter-spacing: .06em; padding-top: 2px; }
+.plate dd { margin: 0; }
+@media (max-width: 640px) { .plate { grid-template-columns: 1fr; padding: 20px; } }
+
+section { display: flex; flex-direction: column; gap: 18px; }
+section > header { display: flex; flex-direction: column; gap: 4px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+section > header h2 { font-size: 22px; font-weight: 700; }
+
+/* two-layer architecture diagram */
+.layers { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.tree { border: 2px solid var(--leaf); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.tree > .name { font-weight: 700; color: var(--leaf); }
+.tree-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .tree-parts { grid-template-columns: 1fr; } }
+.part { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.part b { font-size: 15px; }
+.cores { border: 2px solid var(--steel); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.cores > .name { font-weight: 700; color: var(--steel); }
+.family { display: flex; flex-wrap: wrap; gap: 8px; }
+.family span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: 15px; background: var(--panel); }
+.core-inner { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--muted); }
+.core-inner span { border: 1px dashed var(--line); border-radius: 4px; padding: 2px 8px; }
+.caption { font-size: 14px; color: var(--muted); }
+
+/* expandable deep-dive */
+.deep { display: flex; flex-direction: column; gap: 10px; }
+.deep details { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.deep summary { cursor: pointer; list-style: none; padding: 14px 18px; display: grid; grid-template-columns: 1.6em 1fr auto; gap: 12px; align-items: baseline; }
+.deep summary::-webkit-details-marker { display: none; }
+.deep summary .no { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.deep summary .t { font-weight: 700; }
+.deep summary .t small { display: block; font-weight: 400; color: var(--muted); font-size: 14px; }
+.deep summary .chev { font-family: var(--font-mono); color: var(--steel); transition: transform .15s; }
+.deep details[open] summary .chev { transform: rotate(90deg); }
+.deep details[open] summary { border-bottom: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { .deep summary .chev { transition: none; } }
+.deep .body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.deep .body ul, .deep .body ol { margin: 0; padding-left: 1.3em; }
+/* code panels nested inside .deep must not inherit the 3-column summary grid */
+.deep details.code > summary { display: block; padding: 6px 10px; }
+.deep details.code > summary::before { content: "▸ "; }
+.deep details.code[open] > summary::before { content: "▾ "; }
+.why { margin: 0; padding: 12px 16px; border-left: 3px solid var(--lamp); background: color-mix(in srgb, var(--lamp) 7%, transparent); }
+.principles { display: grid; gap: 8px; }
+.principle { display: grid; grid-template-columns: 2.2em 1fr; gap: 10px; align-items: baseline; }
+.principle .n { font-family: var(--font-mono); color: var(--steel); font-weight: 500; }
+.principle b { display: block; }
+.principle span.d { color: var(--muted); font-size: 15px; }
+.chain { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+.chain .step { border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; }
+.chain .to { color: var(--muted); font-family: var(--font-mono); }
+.blocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 560px) { .blocks { grid-template-columns: 1fr; } }
+.block { border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font-size: 14px; }
+.block b { font-size: 15px; }
+.block .k { font-family: var(--font-mono); color: var(--muted); font-size: 12px; margin-right: 6px; }
+.bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.bar > div { min-width: 2px; }
+.seg-pre { background: var(--steel); }
+.seg-distill { background: color-mix(in srgb, var(--steel) 65%, var(--panel)); }
+.seg-assoc { background: color-mix(in srgb, var(--steel) 40%, var(--panel)); }
+.seg-tools { background: color-mix(in srgb, var(--steel) 22%, var(--panel)); }
+.seg-gen { background: var(--lamp); }
+.seg-post { background: var(--muted); }
+.seg-live { background: #c0392b; }
+.seg-mine { background: var(--lamp); }
+.seg-dead { background: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .stats { grid-template-columns: 1fr; } }
+.stat { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; }
+.stat b { display: block; font-family: var(--font-mono); font-size: 22px; font-variant-numeric: tabular-nums; color: var(--steel); }
+.stat span { font-size: 13px; color: var(--muted); }
+.marks { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); }
+.pill.plan { color: var(--lamp); }
+.timeline-mini { display: flex; flex-direction: column; gap: 0; }
+.tm { display: grid; grid-template-columns: 6.5em 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.tm:last-child { border-bottom: 0; }
+.tm .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 2px; }
+
+/* machine */
+.arch { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.node { border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.node .name { font-weight: 700; }
+.node .spec { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.host { border: 2px solid var(--steel); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.host > .name { font-weight: 700; color: var(--steel); }
+.units { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .units { grid-template-columns: 1fr; } }
+.arrow { text-align: center; font-family: var(--font-mono); color: var(--muted); font-size: 13px; }
+.planned { border-style: dashed; }
+
+/* incident sheets */
+.cases { display: flex; flex-direction: column; gap: 18px; }
+.sheet { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sheet-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.sheet-head h3 { font-size: 18px; }
+.sheet-head .meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.sheet-body { display: grid; grid-template-columns: 7.5em 1fr; }
+.sheet-body > div { padding: 10px 18px; border-bottom: 1px solid var(--line); min-width: 0; }
+.sheet-body > div:nth-last-child(-n+2) { border-bottom: 0; }
+.sheet-body .k { font-weight: 700; color: var(--steel); background: color-mix(in srgb, var(--steel) 6%, transparent); }
+@media (max-width: 560px) {
+  .sheet-body { grid-template-columns: 1fr; }
+  .sheet-body .k { border-bottom: 0; padding-bottom: 0; background: transparent; }
+}
+
+/* experience */
+.timeline { display: flex; flex-direction: column; }
+.job { display: grid; grid-template-columns: 9em 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.job:last-child { border-bottom: 0; }
+.job .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 3px; }
+.job h3 { font-size: 17px; }
+.job ul { margin: 6px 0 0; padding-left: 1.2em; }
+@media (max-width: 560px) { .job { grid-template-columns: 1fr; gap: 4px; } }
+
+.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .skills { grid-template-columns: 1fr; } }
+.skill { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; }
+.skill h3 { font-size: 15px; margin-bottom: 6px; }
+.skill ul { margin: 0; padding-left: 1.2em; font-size: 15px; }
+
+.channel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.expand-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.btn { font: inherit; font-size: 14px; color: var(--steel); background: var(--panel); border: 1px solid var(--steel); border-radius: 4px; padding: 4px 12px; cursor: pointer; }
+.btn:hover { background: color-mix(in srgb, var(--steel) 10%, var(--panel)); }
+.btn:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+
+/* 30-second brief */
+.brief { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--steel); border-radius: 6px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.brief-row { display: grid; grid-template-columns: 4.5em 1fr; gap: 12px; }
+.brief-row .bk { font-weight: 700; color: var(--steel); }
+@media (max-width: 480px) { .brief-row { grid-template-columns: 1fr; gap: 0; } }
+
+/* methods */
+.methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .methods { grid-template-columns: minmax(0, 1fr); } }
+.method { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.method h3 { font-size: 16px; }
+.method p { font-size: 15px; }
+.method .whyline { font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+
+/* lessons + logs */
+.lessons { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.lesson { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.lesson:last-child { border-bottom: 0; }
+.lesson span { color: var(--muted); font-size: 15px; }
+.logs-title { font-size: 17px; margin-top: 8px; }
+pre.log { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; overflow-x: auto; white-space: pre; color: var(--ink); }
+
+/* module drill-down inside the eight blocks */
+.mods { display: flex; flex-direction: column; gap: 8px; }
+.wt-mods { background: var(--panel); }
+details.code { border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
+details.code > summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--steel); padding: 6px 10px; }
+details.code > summary::marker { color: var(--muted); }
+details.code[open] > summary { border-bottom: 1px solid var(--line); }
+details.code pre.log { border: 0; border-radius: 0 0 4px 4px; font-size: 12px; }
+.mod > details.code { margin: 0 12px 12px; }
+.mod-note { padding: 0 12px 12px; }
+.mod-note code { font-family: var(--font-mono); font-size: 12px; }
+.mod { border: 1px solid var(--line); border-radius: 4px; }
+.mod > summary { cursor: pointer; list-style: none; padding: 10px 12px; display: grid; grid-template-columns: 1.4em auto 1fr; gap: 4px 10px; align-items: baseline; }
+.mod > summary::-webkit-details-marker { display: none; }
+.mod > summary .k { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.mod > summary b { font-size: 15px; }
+.mod > summary .sub { font-size: 13px; color: var(--muted); min-width: 0; }
+@media (max-width: 560px) { .mod > summary { grid-template-columns: 1.4em 1fr; } .mod > summary .sub { grid-column: 2; } }
+.mod[open] > summary { border-bottom: 1px solid var(--line); }
+.modlist { display: grid; grid-template-columns: max-content max-content 1fr; gap: 6px 14px; padding: 10px 12px; font-size: 14px; overflow-x: auto; }
+.modlist code { font-family: var(--font-mono); font-size: 13px; color: var(--steel); white-space: nowrap; }
+.modlist .ln { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.modlist span:not(.ln) { min-width: 0; }
+@media (max-width: 560px) {
+  .modlist { grid-template-columns: 1fr auto; }
+  .modlist span:not(.ln) { grid-column: 1 / -1; color: var(--muted); padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+}
+
+/* three layers: remember / body / voice */
+.stack3 { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.layer { border-radius: 6px; padding: 12px 14px; display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; align-items: start; }
+@media (max-width: 560px) { .layer { grid-template-columns: 1fr; gap: 4px; } }
+.layer .ln { font-weight: 700; }
+.layer .ln small { display: block; font-weight: 400; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.layer.l1 { border: 2px solid var(--steel); }
+.layer.l2 { border: 2px solid color-mix(in srgb, var(--steel) 55%, var(--panel)); }
+.layer.l3 { border: 2px dashed var(--lamp); }
+.mouths { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mouths span { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 8px; color: var(--muted); }
+.mouths span.now { color: var(--lamp); border-color: var(--lamp); }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-family: var(--font-mono); letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .evidence { grid-template-columns: 1fr; } }
+.ev { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.ev b.big { font-family: var(--font-mono); font-size: 22px; color: var(--steel); font-variant-numeric: tabular-nums; }
+.limits { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--muted); border-radius: 6px; padding: 14px 16px; }
+.limits ul { margin: 6px 0 0; padding-left: 1.3em; }
+
+/* history */
+.phases { display: flex; flex-direction: column; gap: 14px; }
+.phase { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.phase-head { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; padding: 12px 16px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--steel) 5%, transparent); }
+.phase-head h3 { font-size: 17px; }
+.phase-head .span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.ev-list { display: flex; flex-direction: column; }
+.ev-row { display: grid; grid-template-columns: 6.8em 1fr; gap: 12px; padding: 9px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+.ev-row:last-child { border-bottom: 0; }
+.ev-row .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 2px; }
+.ev-row.key { background: color-mix(in srgb, var(--lamp) 6%, transparent); }
+@media (max-width: 480px) { .ev-row { grid-template-columns: 1fr; gap: 0; } }
+
+.checklist { background: var(--draft-bg); color: var(--draft-ink); border-radius: 6px; padding: 18px 20px; }
+.checklist h2 { font-size: 18px; margin-bottom: 8px; }
+.checklist ol { margin: 0; padding-left: 1.3em; }
+.checklist li.done { opacity: .6; }
+
+/* page one: 30 seconds */
+.onepage { display: flex; flex-direction: column; gap: 18px; }
+.oneliner { font-size: 17px; max-width: 62ch; }
+.oneliner b { color: var(--steel); }
+.highlights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .highlights { grid-template-columns: 1fr; } }
+.hl { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--lamp); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hl .label { color: var(--lamp); }
+.hl h3 { font-size: 17px; }
+.hl p { font-size: 15px; }
+.hl .res { font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+.hl .res b { color: var(--ink); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.hl a.more { font-size: 13px; margin-top: auto; }
+.repo { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--steel); border-radius: 6px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 15px; }
+.repo .k { font-weight: 700; color: var(--steel); }
+.honest { font-size: 14px; color: var(--muted); }
+.cando { font-size: 15px; color: var(--ink); }
+.cando .note, .hl .note { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.hl p.note { margin: 0; }
+
+/* appendix */
+.appendix-head { border-top: 4px double var(--line); padding-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.appendix-head h2 { font-size: 20px; }
+.toc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px; margin: 0; padding: 0; list-style: none; font-size: 15px; }
+@media (max-width: 560px) { .toc { grid-template-columns: 1fr; } }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.toc .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: inline-block; width: 2.2em; }
+.backtop { font-size: 13px; align-self: flex-end; }
+@media print { .toolbar, .backtop, .checklist { display: none; } }
+
+/* evidence: how each number was measured */
+details.basis { font-size: 13px; color: var(--muted); }
+details.basis > summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--steel); list-style: none; }
+details.basis > summary::-webkit-details-marker { display: none; }
+details.basis > summary::before { content: "▸ "; }
+details.basis[open] > summary::before { content: "▾ "; }
+details.basis > div { margin-top: 4px; padding: 6px 10px; border-left: 2px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+details.basis code { font-family: var(--font-mono); font-size: 12px; }
+
+/* print: light colors, one-column nameplate, every panel opened, nothing split across pages */
+@page { size: A4; margin: 14mm 12mm 16mm; }
+@media print {
+  :root:not([data-print]), :root[data-theme="dark"] {
+    --bg: #ffffff; --panel: #ffffff; --ink: #17202a; --muted: #5b6875; --line: #d5dce3;
+    --steel: #2f4a63; --lamp: #c77a12; --ok: #2e7d4f; --leaf: #2f6b52; --draft-bg: #fff4d6; --draft-ink: #7a5300;
+    color-scheme: light;
+  }
+  body { background: #fff; font-size: 10.5pt; line-height: 1.6; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .wrap { max-width: none; gap: 22px; }
+  .plate { grid-template-columns: 1fr; gap: 14px; padding: 18px 20px; }
+  .plate .summary { max-width: none; }
+  .plate dl { grid-template-columns: 6.5em 1fr; }
+  details::details-content { content-visibility: visible; }
+  .deep summary .chev, .expand-bar, details.code > summary::before, details.basis > summary::before { display: none; }
+  .tablewrap, .modlist { overflow: visible; }
+  table { min-width: 0; font-size: 10pt; }
+  pre.log { white-space: pre-wrap; overflow-wrap: anywhere; overflow: visible; font-size: 9pt; }
+  h1, h2, h3, section > header, summary, .phase-head, .sheet-head { break-after: avoid; }
+  tr, .tm, .ev-row, .job, .lesson, .hl, .stat, .method, .ev, .skill, .node, .part, .principle, .block,
+  .brief-row, .layer, .why, .sheet-body > div, .modlist > *, li, p, pre.log { break-inside: avoid; }
+}
+
+/* ---- split-site additions ---- */
+.sitenav { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; margin-top: -16px; }
+.stats { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.sitenav a { white-space: nowrap; text-decoration: none; color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 14px; }
+.sitenav a[aria-current="page"] { background: var(--panel); color: var(--ink); border: 1px solid var(--line); font-weight: 700; }
+.sitenav a:hover { color: var(--ink); }
+.valueline { font-size: 17px; font-weight: 700; color: var(--ink); border-left: 3px solid var(--lamp); padding-left: 10px; margin: 6px 0 2px; }
+a.pdf { font-weight: 700; }
+.pagehead { display: flex; flex-direction: column; gap: 8px; }
+.pagehead h1 { font-size: 30px; }
+.pagehead .lead { color: var(--muted); }
+.cards4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 600px) { .cards4 { grid-template-columns: 1fr; } }
+.card4 { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--ink); }
+.card4:hover { border-color: var(--steel); }
+.card4 h2 { font-size: 19px; }
+.card4 p { color: var(--muted); font-size: 15px; flex: 1; }
+.card4 .go { color: var(--steel); font-weight: 700; font-size: 15px; }
+figure.fig { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+figure.fig .figwrap { overflow-x: auto; }
+figure.fig figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.fig-svg { display: block; width: 100%; min-width: 600px; height: auto; font-family: var(--font-body); }
+.fig-svg .lane { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.fig-svg .small { font-size: 12px; fill: var(--muted); }
+.fig-svg .inbar { font-size: 11px; fill: #fff; font-weight: 700; }
+.fig-svg .bt { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.fig-svg .bs { font-size: 12px; fill: var(--muted); }
+.fig-svg .bs.em { fill: var(--ink); font-weight: 500; }
+.fig-svg .lbl { font-size: 13px; fill: var(--ink); }
+.fig-svg .numt { font-family: var(--font-mono); font-weight: 700; }
+.fig-svg .box { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.fig-svg .box.strong { stroke: var(--steel); stroke-width: 1.6; }
+.fig-svg .box.soft { fill: var(--panel); stroke-dasharray: 4 3; }
+.fig-svg .cell { fill: var(--panel); stroke: var(--steel); stroke-width: 1.2; }
+.fig-svg .flow { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.fig-svg .arrowhead { fill: var(--muted); }
+.fig-svg .axis, .fig-svg .tick { stroke: var(--line); stroke-width: 1.2; }
+.fig-svg .bar-muted { fill: var(--muted); opacity: .55; }
+.fig-svg .bar-steel { fill: var(--steel); }
+.fig-svg .bar-leaf, .fig-svg .bar-leaf-arrow { fill: var(--leaf); }
+.fig-svg .c-ok { fill: #2e7d4f; } .fig-svg .c-obs { fill: #3a6ea5; } .fig-svg .c-part { fill: #c98a12; } .fig-svg .c-fail { fill: #b8336a; }
+.fig-svg .c-none { fill: var(--panel); stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fig-svg .c-ok { fill: #3fa673; } :root:not([data-theme="light"]) .fig-svg .c-obs { fill: #4a88d6; } :root:not([data-theme="light"]) .fig-svg .c-part { fill: #bc8410; } :root:not([data-theme="light"]) .fig-svg .c-fail { fill: #d24c78; } }
+:root[data-theme="dark"] .fig-svg .c-ok { fill: #3fa673; } :root[data-theme="dark"] .fig-svg .c-obs { fill: #4a88d6; } :root[data-theme="dark"] .fig-svg .c-part { fill: #bc8410; } :root[data-theme="dark"] .fig-svg .c-fail { fill: #d24c78; }
+details.ledger table { font-size: 13px; }
+details.ledger td:first-child, details.ledger td:nth-child(2) { white-space: nowrap; font-family: var(--font-mono); font-size: 12px; }
+details.ledger th, details.ledger td:nth-child(4), details.ledger td:nth-child(5) { white-space: nowrap; }
+details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
+.anim-list { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 8px; }
+@media print { .sitenav { display: none; } .fig-svg { min-width: 0; } figure.fig .figwrap { overflow: visible; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+<nav class="sitenav" aria-label="作品集分頁"><a href="index.html">首頁</a><a href="fae.html">設備／FAE</a><a href="system.html">本地 AI 系統</a><a href="animation.html">AI 動畫</a><a href="worldsim.html" aria-current="page">世界樹</a></nav>
+<div class="pagehead"><span class="label">WorldTree · world simulation</span><h1>世界樹</h1>
+<p class="lead">世界模擬引擎：從一顆種子開始，只定規則、不寫劇本，讓世界自己長出來；目的是讓因果的資料是真的。程式由 AI 撰寫，世界觀、規則、規格與驗收由我負責。先寫它現在跑得起來的；當初的設計說法哪些量出來不成立，收在下面的「自查」裡。</p></div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 250" role="img" aria-labelledby="t5 d5">
+<title id="t5">世界生成管線</title>
+<desc id="d5">世界種子、能量分層、地形與物理、環境、族群、社會、代理個體、世界歷史、焦點時刻、敘事。設計規則：只定規則、不寫劇本；歷史只能寫一次；觀察者只讀。</desc>
+<defs><marker id="ah5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<text class="small" x="20" y="20">設計規則：只定規則、不寫劇本</text>
+<rect class="box" x="20" y="36" width="124" height="44" rx="8"/>
+<text class="bt" x="82.0" y="64" text-anchor="middle">世界種子</text>
+<line class="flow" x1="144" y1="58" x2="158" y2="58" marker-end="url(#ah5)"/>
+<rect class="box" x="160" y="36" width="124" height="44" rx="8"/>
+<text class="bt" x="222.0" y="64" text-anchor="middle">能量分層 T0→T9</text>
+<text class="small" x="222.0" y="98" text-anchor="middle">總量守恆</text>
+<line class="flow" x1="284" y1="58" x2="298" y2="58" marker-end="url(#ah5)"/>
+<rect class="box" x="300" y="36" width="124" height="44" rx="8"/>
+<text class="bt" x="362.0" y="64" text-anchor="middle">地形與物理</text>
+<line class="flow" x1="424" y1="58" x2="438" y2="58" marker-end="url(#ah5)"/>
+<rect class="box" x="440" y="36" width="124" height="44" rx="8"/>
+<text class="bt" x="502.0" y="64" text-anchor="middle">環境</text>
+<line class="flow" x1="564" y1="58" x2="578" y2="58" marker-end="url(#ah5)"/>
+<rect class="box" x="580" y="36" width="124" height="44" rx="8"/>
+<text class="bt" x="642.0" y="64" text-anchor="middle">族群</text>
+<line class="flow" x1="642.0" y1="80" x2="642.0" y2="138" marker-end="url(#ah5)"/>
+<rect class="box" x="580" y="140" width="124" height="44" rx="8"/>
+<text class="bt" x="642.0" y="168" text-anchor="middle">社會</text>
+<line class="flow" x1="580" y1="162" x2="566" y2="162" marker-end="url(#ah5)"/>
+<rect class="box" x="440" y="140" width="124" height="44" rx="8"/>
+<text class="bt" x="502.0" y="168" text-anchor="middle">代理個體</text>
+<text class="small" x="502.0" y="202" text-anchor="middle">出生參數隨機、之後不變</text>
+<line class="flow" x1="440" y1="162" x2="426" y2="162" marker-end="url(#ah5)"/>
+<rect class="box strong" x="300" y="140" width="124" height="44" rx="8"/>
+<text class="bt" x="362.0" y="168" text-anchor="middle">世界歷史</text>
+<text class="small" x="362.0" y="202" text-anchor="middle">只能寫一次</text>
+<line class="flow" x1="300" y1="162" x2="286" y2="162" marker-end="url(#ah5)"/>
+<rect class="box strong" x="160" y="140" width="124" height="44" rx="8"/>
+<text class="bt" x="222.0" y="168" text-anchor="middle">焦點時刻</text>
+<text class="small" x="222.0" y="202" text-anchor="middle">數值門檻挑出</text>
+<line class="flow" x1="160" y1="162" x2="146" y2="162" marker-end="url(#ah5)"/>
+<rect class="box" x="20" y="140" width="124" height="44" rx="8"/>
+<text class="bt" x="82.0" y="168" text-anchor="middle">敘事</text>
+<text class="small" x="20" y="236">觀察者只讀：只能看已經結束的世界，不能改。</text>
+</svg></div><figcaption>世界生成管線。標示的是設計規則；哪些量出來不成立，見下面的「自查」。</figcaption></figure><section id="a-worldtree">
+    <header>
+      <span class="label">附錄 3 · WorldTree</span>
+      <h2>世界樹：世界模擬引擎</h2>
+    </header>
+    <p>世界樹不只是共用層，它本身是一個世界模擬引擎：從一顆種子開始，讓能量照物理規則一層層生成地形、環境、族群和社會；每一個被模擬的個體都有唯一 ID、出生時決定的初始參數，和一段完整的生命歷程。程式約 3 萬行、100 多個檔（不含測試與備份）。</p>
+
+    <blockquote class="why">
+      <p><b>設計目標：</b>因果之書的資料必須是真的。讓沒有預設性格、沒有記憶的空白代理，在模擬世界裡跑完完整的生命週期，再從它們實際做出的因果預測累積成大樣本統計。不用大型模型標註，也不寫死規則。規則創造世界，世界長出資料。</p>
+    </blockquote>
+
+    <div class="honest cando"><b>它現在跑得起來的：</b>
+    <ul style="margin:4px 0 0;padding-left:1.2em">
+      <li>從一顆種子跑完整條生成管線；畫藍圖時一次生成 100 個世界拿來比較。</li>
+      <li>能量總量守得住：54 個世界各跑 4,000 年，各層加總和 1 的最大差 2.2×10⁻¹⁶（靠每一步縮放回 1，細節在下面）。</li>
+      <li>歷史只能寫一次：同一個世界 ID 已經存在就拒絕覆寫。</li>
+      <li>觀察者介面確實唯讀。</li>
+    </ul></div><details class="basis"><summary>自查：當初的設計說法，哪些量出來不成立（10 項，照實改寫）</summary><div><p class="caption">這張表是我畫藍圖時自己查出來的，不留好看的版本。藍圖一共登記 93 條：會影響日常運作的 2 條已經修好上線（觀察期）；其餘 91 條因為世界模擬還沒接上日常系統、不影響日常運作，排在下一階段修。</p><div class="tablewrap">
+      <table>
+        <thead><tr><th>項目</th><th>設計目標</th><th>自己量出來的</th></tr></thead>
+        <tbody>
+          <tr><td>能量守恆</td><td>總量固定為 1，自然守恆</td><td>總量守得住，是每一步把總量縮放回 1 換來的；空間層本身不守恆，32² 的世界創世當下就是 1.50 倍</td></tr>
+          <tr><td>向量化加速</td><td>改寫成陣列運算來加速</td><td>整步 1.07～1.30 倍，串行再量 1.01 倍</td></tr>
+          <tr><td>物理引擎</td><td>速率全部從物理常數推導，不加人工參數</td><td>物理引擎（584 行）沒有被任何地方呼叫；它自己也不是純推導，檔內只有 4 個推導常數、101 個手寫浮點。管線實際跑的速率在別的檔，一樣是手寫表（world_genesis.py 366 個常數、world_state.py 的消耗表）</td></tr>
+          <tr><td>紀元參數表</td><td>照「原典」設定各紀元的參數</td><td>有 4 個標成「原典」的值，其實是推出來的</td></tr>
+          <tr><td>統一引擎</td><td>七個步驟統一計算</td><td>缺兩步，而且沒有任何地方呼叫它</td></tr>
+          <tr><td>量子編碼</td><td>用量子電路影響元素之間的互斥</td><td>方向全由手寫規則決定；量子電路實際改動的幅度，中位數只有 0.07%</td></tr>
+          <tr><td>空白代理跑一生</td><td>空白代理在模擬世界跑完生命週期，產生因果預測</td><td>模擬程式單獨跑時載不到代理核心；對世界事件的感知命中 0／1,005；「空白」代理其實帶著預設性格</td></tr>
+          <tr><td>因果之書人際層</td><td>從日常 agent 的因果預測累積</td><td>讀到的是三月的舊檔；八個角色算出來同一張臉</td></tr>
+          <tr><td>只讀觀察者</td><td>只讀、追因果、跨世界比較</td><td>介面確實唯讀；但讀到的那段能量歷史是常數，100 個世界全被判成「穩定」</td></tr>
+          <tr><td>角色一致性驗證</td><td>分辨回覆是不是本人</td><td>它量的是「屬不屬於這個世界」，不是身分：當初的 0.310 重現不出來，冒名的 50 則被判成真的 33 則</td></tr>
+        </tbody>
+      </table>
+    </div></div></details>
+
+    <div class="methods">
+      <article class="method">
+        <h3>守恆不變量</h3>
+        <p>能量總量固定為 1。模擬中的社會消耗的是各層的比例，消耗掉的能量最後回到最底層。2026-10-22 實測 54 個世界、各跑 4,000 年：各層加總和 1 的最大差 2.2×10⁻¹⁶。但這是程式每一步縮放回 1 換來的（程式碼最後一段）；空間層本身不守恆，見上表。</p>
+        <details class="code"><summary>程式碼 · world_state.py</summary><pre class="log">    # 從各層提取（不超過各層現有能量的 50%，防止單步過度提取）
+    for tier, base_rate in tier_rates.items():
+        rate    = base_rate * epoch_multiplier
+        current = e.get(tier, 0.0)
+        extract = min(rate * current, current * 0.5)
+        e[tier]        = max(0.0, current - extract)
+        total_extracted += extract
+
+    # 守恆：提取的全部回到 tier9（乙太降格至元素態）
+    e[9] = e.get(9, 0.0) + total_extracted
+
+    # 守恆驗算（防禦性）
+    total = sum(e.values())
+    if abs(total - ether.total_ether) &gt; 1e-9:
+        scale = ether.total_ether / total
+        e = {t: v * scale for t, v in e.items()}</pre></details>
+        <p class="whyline">舊版直接扣總量，跑久了能量趨近於零；改成循環模型之後總量守得住，但靠的是每步校正，還不是模型本身守恆。</p>
+      </article>
+      <article class="method">
+        <h3>向量化改寫</h3>
+        <p>創世引擎的逐格迴圈改寫成 numpy 陣列運算，擴散那一段改用擴散方程近似原本的逐對計算，每格流量設上限。檔頭原本寫的加速倍數找不到量測紀錄；2026-10-22 實測整步只快 1.07～1.30 倍，10-23 串行再量是 1.01 倍，瓶頸卡在另一段沒改寫的計算。</p>
+        <details class="code"><summary>程式碼 · genesis_vectorized.py</summary><pre class="log">def _nb_sum(arr: np.ndarray) -&gt; np.ndarray:
+    """Sum of 4 neighbors. Zero at boundaries (no wrap)."""
+    result = np.zeros_like(arr)
+    result[1:, :] += arr[:-1, :]
+    result[:-1, :] += arr[1:, :]
+    result[:, 1:] += arr[:, :-1]
+    result[:, :-1] += arr[:, 1:]
+    return result
+...
+    # Void_point diffusion (fast inhibitor)
+    void_nb_avg = _nb_avg(a.t4_void)
+    void_diff = void_nb_avg - a.t4_void
+    void_flow = void_diff * t4_rate * 0.95
+    void_flow = np.clip(void_flow, -a.t4_void * 0.25, a.t4_void * 0.25)
+    a.t4_void += void_flow</pre></details>
+        <p class="whyline">先寫對，再寫快；寫快之後要量，量到的數字才算數，寫在檔頭的不算。</p>
+      </article>
+      <article class="method">
+        <h3>只能寫一次的歷史庫</h3>
+        <p>同一個世界 ID 已經存在就拒絕覆寫；沒有世界歷史，就不准存焦點歷史。</p>
+        <details class="code"><summary>程式碼 · worldtree_library.py</summary><pre class="log">        if state.world_id in self._index:
+            raise ValueError(
+                f"世界 [{state.world_id}] 已存在圖書館中。"
+                f"歷史不能被覆寫。"
+            )
+...
+    def save_focus_history(self, world_id, focus_data) -&gt; None:
+        """
+        因果強制：必須先有世界歷史，才能存焦點歷史。
+        寫一次原則：已存在則拒絕。
+        """
+        if world_id not in self._index:
+            raise ValueError(
+                f"世界 [{world_id}] 不在圖書館中。"
+                f"世界歷史必須先存在，才能存焦點歷史。"
+            )</pre></details>
+        <p class="whyline">「有因才有果」寫成程式裡的強制檢查，不是寫在文件裡的約定。藍圖另外找到：歸檔焦點歷史時，會蓋掉附帶的摘要欄位，已登記。</p>
+      </article>
+      <article class="method">
+        <h3>只讀的觀察者</h3>
+        <p>世界跑完之後觀察者才能進來，只有讀歷史、追因果、讀各時期、跨世界比較四個介面，不能干涉。</p>
+        <details class="code"><summary>程式碼 · world_observer.py</summary><pre class="log">    def __init__(self, state: WorldState):
+        if not state.is_finished:
+            raise ValueError(
+                f"觀察者原則：世界 [{state.world_id}] 尚未結束（狀態：{state.status.value}）。"
+                f"只能觀察已完成或已滅亡的世界。"
+            )
+        # 觀察者持有一份引用，但永遠不修改它
+        self._state = state</pre></details>
+        <p class="whyline">只定規則，不操控結果。介面守住了；它讀的資料沒接對，見上表。</p>
+      </article>
+      <article class="method">
+        <h3>焦點規則</h3>
+        <p>四條規則從整段世界歷史挑出有份量的時刻，例如失衡分數單一時期跳動 ≥ 0.08、失衡等級第一次升高。挑出來的時刻再渲染成敘事文本。</p>
+        <details class="code"><summary>程式碼 · focus_history.py</summary><pre class="log">    EMOTIONAL_SURGE_DELTA     = 0.08   # 失衡分數單紀元跳動超過此值 → 情緒波動
+    MAJOR_EVENT_LEVEL         = 2      # 失衡等級達到此值 → 重大事件
+    FATE_TURNING_TIER7_DROP   = 0.008  # tier7 單紀元下降超過此值 → 命運轉折
+    FATE_TURNING_RACE_SHIFT   = True   # 主導種族改變 → 命運轉折
+    HISTORICAL_IMPACT_PERSIST = 2      # 影響延續超過此數量的後續紀元 → 歷史影響力</pre></details>
+        <p class="whyline">世界歷史是大綱，焦點時刻是主角。藍圖量到：挑出來的焦點時刻有 72% 其實是主角自己的人生事件，規則本身挑到的比想像中少。</p>
+      </article>
+    </div>
+
+    <details class="mod wt-mods">
+      <summary><span class="k">＋</span><b>世界樹的模組</b><span class="sub">點開看五組主要模組與行數</span></summary>
+      <div class="mods" style="padding:10px 12px">
+        <details class="mod">
+          <summary><span class="k">1</span><b>創世與物理</b><span class="sub">能量分層、地形、擴散</span></summary>
+          <div class="modlist">
+            <code>world_genesis.py</code><span class="ln">2,021</span><span>世界生成引擎：T0→T4→T5→T8→T9 逐層生成，每層有空間分布；速率是手寫表（52 種、366 個常數）</span>
+            <code>genesis_vectorized.py</code><span class="ln">1,593</span><span>numpy 向量化版本（實測整步 1.07～1.30 倍、串行 1.01 倍；擴散段為近似）</span>
+            <code>ether_cycle.py</code><span class="ln">714</span><span>能量循環：每個世界是一個封閉系統</span>
+            <code>ether_environment.py</code><span class="ln">679</span><span>環境層能量分布</span>
+            <code>world_physics.py</code><span class="ln">584</span><span>物理引擎（設計：速率從物理常數推導；實際沒有被任何地方呼叫；檔內 4 個推導常數、101 個手寫浮點，管線的速率在 world_genesis／world_state 的手寫表）</span>
+            <code>quantum_ether.py</code><span class="ln">525</span><span>元素比例編碼成 8 個量子位元（PennyLane）；方向由手寫規則決定，電路實際改動的幅度中位數 0.07%</span>
+            <code>ether_elements.py</code><span class="ln">519</span><span>元素定義與交互</span>
+            <code>world_seed.py</code><span class="ln">403</span><span>世界種子</span>
+            <code>terrain_system.py</code><span class="ln">401</span><span>地形：山脈擋流、盆地積壓</span>
+          </div>
+        </details>
+        <details class="mod">
+          <summary><span class="k">2</span><b>族群與個體</b><span class="sub">族群、個體、初始參數</span></summary>
+          <div class="modlist">
+            <code>race_template.py</code><span class="ln">1,012</span><span>族群模板與生態：環境條件決定族群，族群發展出社會</span>
+            <code>world_state.py</code><span class="ln">732</span><span>世界容器，把所有層接起來，守恆檢查</span>
+            <code>life_simulator.py</code><span class="ln">573</span><span>設計：讓空白代理跑完生命週期（目前單獨跑時載不到代理核心）</span>
+            <code>star_plate.py</code><span class="ln">573</span><span>能力上限與升階</span>
+            <code>soul_seeder.py</code><span class="ln">484</span><span>從世界歷史生成有唯一 ID 的個體</span>
+            <code>talent_dice.py</code><span class="ln">466</span><span>初始參數：生成時隨機決定、之後不變；性格從經歷長出來</span>
+          </div>
+        </details>
+        <details class="mod">
+          <summary><span class="k">3</span><b>歷史與敘事</b><span class="sub">觀察、存檔、挑焦點、寫成文字</span></summary>
+          <div class="modlist">
+            <code>focus_history.py</code><span class="ln">621</span><span>焦點規則引擎</span>
+            <code>narrative_renderer.py</code><span class="ln">462</span><span>把歷史轉成繁體中文敘事</span>
+            <code>world_observer.py</code><span class="ln">458</span><span>只讀觀察者</span>
+            <code>worldtree_library.py</code><span class="ln">430</span><span>只能寫一次的歷史庫</span>
+          </div>
+        </details>
+        <details class="mod">
+          <summary><span class="k">4</span><b>因果之書</b><span class="sub">從模擬累積真實的因果統計</span></summary>
+          <div class="modlist">
+            <code>causal_book_env.py</code><span class="ln">709</span><span>環境條件 → 能量分布的因果機率，跨種子通用</span>
+            <code>env_causal_record.py</code><span class="ln">547</span><span>環境因果記錄（無生命體的第一層）</span>
+            <code>motherstats_engine.py</code><span class="ln">495</span><span>大樣本統計（設計：只用空白代理跑出來的資料）</span>
+            <code>train_causal_social.py</code><span class="ln">405</span><span>人際互動層（目前讀到三月的舊檔，八個角色算出同一張臉）</span>
+            <code>train_causal_events.py</code><span class="ln">376</span><span>因果事件收集（倒因機制）</span>
+            <code>train_causal_soul.py</code><span class="ln">361</span><span>個體層訓練器</span>
+          </div>
+        </details>
+        <details class="mod">
+          <summary><span class="k">5</span><b>跟代理核心的接口</b><span class="sub">刺激轉換、驗證、分派、空間</span></summary>
+          <div class="modlist">
+            <code>soulcore_verifier.py</code><span class="ln">784</span><span>名字叫角色一致性驗證，量的其實是世界歸屬，不是身分（冒名 50 則判成真的 33 則，見上表）</span>
+            <code>vlad_dispatcher.py</code><span class="ln">565</span><span>決策分派：判斷輸入複雜度、決定處理層級</span>
+            <code>environment_layout.py</code><span class="ln">486</span><span>環境的空間座標系</span>
+            <code>worldtree_soulcore_bridge.py</code><span class="ln">246</span><span>把模擬的時期轉成代理核心收得到的輸入</span>
+          </div>
+        </details>
+      </div>
+    </details>
+    <div class="limits">
+      <b>目前的狀態</b>
+      <ul>
+        <li>2026-03 完成第一版程式；2026-10-23 藍圖畫到 100%，登記 85 條問題（到 10/23 晚累計 93 條），結果就是上面的對照表。</li>
+        <li>這一階段只畫藍圖、不修。下一階段先修表上的問題，再談把因果之書接到日常運作的 agent（目前兩邊還是分開的，見附錄 14）。</li>
+      </ul>
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section><p class="caption">應徵遊戲企劃時，規則和參數表的寫法可以看這頁。</p>
+</div>
+<script>
+(function () {
+  // remember which panels this viewer opened, so a republish doesn't collapse them
+  var panels = Array.prototype.slice.call(document.querySelectorAll('details'));
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('portfolio-open-' + location.pathname) || '{}') || {}; } catch (e) {}
+  panels.forEach(function (d, i) {
+    var key = 'p' + i + ':' + (d.querySelector('summary') || d).textContent.trim().slice(0, 12);
+    d.dataset.key = key;
+    if (saved[key] === 1) d.open = true;
+    if (saved[key] === 0) d.open = false;
+    d.addEventListener('toggle', function () {
+      saved[key] = d.open ? 1 : 0;
+      try { localStorage.setItem('portfolio-open-' + location.pathname, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+
+  var btn = document.getElementById('expandAll');
+  if (btn) {
+  var detailPanels = Array.prototype.slice.call(btn.closest('section').querySelectorAll('details'));
+  function syncLabel() { btn.textContent = detailPanels.every(function (d) { return d.open; }) ? '全部收合' : '全部展開'; }
+  btn.addEventListener('click', function () {
+    var openAll = !detailPanels.every(function (d) { return d.open; });
+    detailPanels.forEach(function (d) { d.open = openAll; });
+    syncLabel();
+  });
+  detailPanels.forEach(function (d) { d.addEventListener('toggle', syncLabel); });
+  syncLabel();
+  }
+
+  // printing opens every panel, then puts back what the viewer had
+  var beforePrint = null;
+  window.addEventListener('beforeprint', function () {
+    beforePrint = panels.map(function (d) { return d.open; });
+    panels.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener('afterprint', function () {
+    if (!beforePrint) return;
+    panels.forEach(function (d, i) { d.open = beforePrint[i]; });
+    beforePrint = null;
+  });
+})();
+</script>
+</body></html>

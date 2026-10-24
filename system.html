@@ -1,0 +1,1831 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="description" content="鄭孟修帶著 AI 從零做出並維運的本地長期記憶多代理系統。">
+<title>本地 AI 系統｜鄭孟修</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: equipment nameplate header → architecture as the centerpiece (expandable) → machine → field reports (異常處理單) → channel → experience */
+:root {
+  --bg: #f3f5f7;
+  --panel: #ffffff;
+  --ink: #17202a;
+  --muted: #5b6875;
+  --line: #d5dce3;
+  --steel: #2f4a63;
+  --lamp: #c77a12;
+  --ok: #2e7d4f;
+  --leaf: #2f6b52;
+  --draft-bg: #fff4d6;
+  --draft-ink: #7a5300;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --panel: #18202a; --ink: #e6ebf0; --muted: #9aa8b5; --line: #2c3946;
+    --steel: #8fb3d4; --lamp: #e9a13b; --ok: #5cc18a; --leaf: #6fbf98; --draft-bg: #3a2f12; --draft-ink: #f3cf7a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --panel: #18202a; --ink: #e6ebf0; --muted: #9aa8b5; --line: #2c3946;
+  --steel: #8fb3d4; --lamp: #e9a13b; --ok: #5cc18a; --leaf: #6fbf98; --draft-bg: #3a2f12; --draft-ink: #f3cf7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--steel); }
+a:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); }
+.label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* draft markers */
+.draft { background: var(--draft-bg); color: var(--draft-ink); border-radius: 3px; padding: 0 5px; font-size: .9em; }
+body.clean .draft-only { display: none; }
+body.clean .draft { background: transparent; color: inherit; padding: 0; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; font-size: 14px; color: var(--muted); }
+.toolbar label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+
+/* nameplate */
+.plate { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 28px; }
+.plate h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 900; letter-spacing: .02em; }
+.plate .role { font-size: 18px; font-weight: 500; color: var(--steel); margin-top: 6px; }
+.plate .summary { margin-top: 16px; max-width: 60ch; }
+.plate dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; align-content: start; }
+.plate dt { font-family: var(--font-mono); color: var(--muted); font-size: 12px; letter-spacing: .06em; padding-top: 2px; }
+.plate dd { margin: 0; }
+@media (max-width: 640px) { .plate { grid-template-columns: 1fr; padding: 20px; } }
+
+section { display: flex; flex-direction: column; gap: 18px; }
+section > header { display: flex; flex-direction: column; gap: 4px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+section > header h2 { font-size: 22px; font-weight: 700; }
+
+/* two-layer architecture diagram */
+.layers { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.tree { border: 2px solid var(--leaf); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.tree > .name { font-weight: 700; color: var(--leaf); }
+.tree-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .tree-parts { grid-template-columns: 1fr; } }
+.part { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.part b { font-size: 15px; }
+.cores { border: 2px solid var(--steel); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.cores > .name { font-weight: 700; color: var(--steel); }
+.family { display: flex; flex-wrap: wrap; gap: 8px; }
+.family span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: 15px; background: var(--panel); }
+.core-inner { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--muted); }
+.core-inner span { border: 1px dashed var(--line); border-radius: 4px; padding: 2px 8px; }
+.caption { font-size: 14px; color: var(--muted); }
+
+/* expandable deep-dive */
+.deep { display: flex; flex-direction: column; gap: 10px; }
+.deep details { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.deep summary { cursor: pointer; list-style: none; padding: 14px 18px; display: grid; grid-template-columns: 1.6em 1fr auto; gap: 12px; align-items: baseline; }
+.deep summary::-webkit-details-marker { display: none; }
+.deep summary .no { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.deep summary .t { font-weight: 700; }
+.deep summary .t small { display: block; font-weight: 400; color: var(--muted); font-size: 14px; }
+.deep summary .chev { font-family: var(--font-mono); color: var(--steel); transition: transform .15s; }
+.deep details[open] summary .chev { transform: rotate(90deg); }
+.deep details[open] summary { border-bottom: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { .deep summary .chev { transition: none; } }
+.deep .body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.deep .body ul, .deep .body ol { margin: 0; padding-left: 1.3em; }
+/* code panels nested inside .deep must not inherit the 3-column summary grid */
+.deep details.code > summary { display: block; padding: 6px 10px; }
+.deep details.code > summary::before { content: "▸ "; }
+.deep details.code[open] > summary::before { content: "▾ "; }
+.why { margin: 0; padding: 12px 16px; border-left: 3px solid var(--lamp); background: color-mix(in srgb, var(--lamp) 7%, transparent); }
+.principles { display: grid; gap: 8px; }
+.principle { display: grid; grid-template-columns: 2.2em 1fr; gap: 10px; align-items: baseline; }
+.principle .n { font-family: var(--font-mono); color: var(--steel); font-weight: 500; }
+.principle b { display: block; }
+.principle span.d { color: var(--muted); font-size: 15px; }
+.chain { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+.chain .step { border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; }
+.chain .to { color: var(--muted); font-family: var(--font-mono); }
+.blocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 560px) { .blocks { grid-template-columns: 1fr; } }
+.block { border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font-size: 14px; }
+.block b { font-size: 15px; }
+.block .k { font-family: var(--font-mono); color: var(--muted); font-size: 12px; margin-right: 6px; }
+.bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.bar > div { min-width: 2px; }
+.seg-pre { background: var(--steel); }
+.seg-distill { background: color-mix(in srgb, var(--steel) 65%, var(--panel)); }
+.seg-assoc { background: color-mix(in srgb, var(--steel) 40%, var(--panel)); }
+.seg-tools { background: color-mix(in srgb, var(--steel) 22%, var(--panel)); }
+.seg-gen { background: var(--lamp); }
+.seg-post { background: var(--muted); }
+.seg-live { background: #c0392b; }
+.seg-mine { background: var(--lamp); }
+.seg-dead { background: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .stats { grid-template-columns: 1fr; } }
+.stat { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; }
+.stat b { display: block; font-family: var(--font-mono); font-size: 22px; font-variant-numeric: tabular-nums; color: var(--steel); }
+.stat span { font-size: 13px; color: var(--muted); }
+.marks { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); }
+.pill.plan { color: var(--lamp); }
+.timeline-mini { display: flex; flex-direction: column; gap: 0; }
+.tm { display: grid; grid-template-columns: 6.5em 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.tm:last-child { border-bottom: 0; }
+.tm .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 2px; }
+
+/* machine */
+.arch { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.node { border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.node .name { font-weight: 700; }
+.node .spec { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.host { border: 2px solid var(--steel); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.host > .name { font-weight: 700; color: var(--steel); }
+.units { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .units { grid-template-columns: 1fr; } }
+.arrow { text-align: center; font-family: var(--font-mono); color: var(--muted); font-size: 13px; }
+.planned { border-style: dashed; }
+
+/* incident sheets */
+.cases { display: flex; flex-direction: column; gap: 18px; }
+.sheet { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sheet-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.sheet-head h3 { font-size: 18px; }
+.sheet-head .meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.sheet-body { display: grid; grid-template-columns: 7.5em 1fr; }
+.sheet-body > div { padding: 10px 18px; border-bottom: 1px solid var(--line); min-width: 0; }
+.sheet-body > div:nth-last-child(-n+2) { border-bottom: 0; }
+.sheet-body .k { font-weight: 700; color: var(--steel); background: color-mix(in srgb, var(--steel) 6%, transparent); }
+@media (max-width: 560px) {
+  .sheet-body { grid-template-columns: 1fr; }
+  .sheet-body .k { border-bottom: 0; padding-bottom: 0; background: transparent; }
+}
+
+/* experience */
+.timeline { display: flex; flex-direction: column; }
+.job { display: grid; grid-template-columns: 9em 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.job:last-child { border-bottom: 0; }
+.job .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 3px; }
+.job h3 { font-size: 17px; }
+.job ul { margin: 6px 0 0; padding-left: 1.2em; }
+@media (max-width: 560px) { .job { grid-template-columns: 1fr; gap: 4px; } }
+
+.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .skills { grid-template-columns: 1fr; } }
+.skill { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; }
+.skill h3 { font-size: 15px; margin-bottom: 6px; }
+.skill ul { margin: 0; padding-left: 1.2em; font-size: 15px; }
+
+.channel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.expand-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.btn { font: inherit; font-size: 14px; color: var(--steel); background: var(--panel); border: 1px solid var(--steel); border-radius: 4px; padding: 4px 12px; cursor: pointer; }
+.btn:hover { background: color-mix(in srgb, var(--steel) 10%, var(--panel)); }
+.btn:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+
+/* 30-second brief */
+.brief { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--steel); border-radius: 6px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.brief-row { display: grid; grid-template-columns: 4.5em 1fr; gap: 12px; }
+.brief-row .bk { font-weight: 700; color: var(--steel); }
+@media (max-width: 480px) { .brief-row { grid-template-columns: 1fr; gap: 0; } }
+
+/* methods */
+.methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .methods { grid-template-columns: minmax(0, 1fr); } }
+.method { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.method h3 { font-size: 16px; }
+.method p { font-size: 15px; }
+.method .whyline { font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+
+/* lessons + logs */
+.lessons { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.lesson { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.lesson:last-child { border-bottom: 0; }
+.lesson span { color: var(--muted); font-size: 15px; }
+.logs-title { font-size: 17px; margin-top: 8px; }
+pre.log { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; overflow-x: auto; white-space: pre; color: var(--ink); }
+
+/* module drill-down inside the eight blocks */
+.mods { display: flex; flex-direction: column; gap: 8px; }
+.wt-mods { background: var(--panel); }
+details.code { border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
+details.code > summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--steel); padding: 6px 10px; }
+details.code > summary::marker { color: var(--muted); }
+details.code[open] > summary { border-bottom: 1px solid var(--line); }
+details.code pre.log { border: 0; border-radius: 0 0 4px 4px; font-size: 12px; }
+.mod > details.code { margin: 0 12px 12px; }
+.mod-note { padding: 0 12px 12px; }
+.mod-note code { font-family: var(--font-mono); font-size: 12px; }
+.mod { border: 1px solid var(--line); border-radius: 4px; }
+.mod > summary { cursor: pointer; list-style: none; padding: 10px 12px; display: grid; grid-template-columns: 1.4em auto 1fr; gap: 4px 10px; align-items: baseline; }
+.mod > summary::-webkit-details-marker { display: none; }
+.mod > summary .k { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.mod > summary b { font-size: 15px; }
+.mod > summary .sub { font-size: 13px; color: var(--muted); min-width: 0; }
+@media (max-width: 560px) { .mod > summary { grid-template-columns: 1.4em 1fr; } .mod > summary .sub { grid-column: 2; } }
+.mod[open] > summary { border-bottom: 1px solid var(--line); }
+.modlist { display: grid; grid-template-columns: max-content max-content 1fr; gap: 6px 14px; padding: 10px 12px; font-size: 14px; overflow-x: auto; }
+.modlist code { font-family: var(--font-mono); font-size: 13px; color: var(--steel); white-space: nowrap; }
+.modlist .ln { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.modlist span:not(.ln) { min-width: 0; }
+@media (max-width: 560px) {
+  .modlist { grid-template-columns: 1fr auto; }
+  .modlist span:not(.ln) { grid-column: 1 / -1; color: var(--muted); padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+}
+
+/* three layers: remember / body / voice */
+.stack3 { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.layer { border-radius: 6px; padding: 12px 14px; display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; align-items: start; }
+@media (max-width: 560px) { .layer { grid-template-columns: 1fr; gap: 4px; } }
+.layer .ln { font-weight: 700; }
+.layer .ln small { display: block; font-weight: 400; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.layer.l1 { border: 2px solid var(--steel); }
+.layer.l2 { border: 2px solid color-mix(in srgb, var(--steel) 55%, var(--panel)); }
+.layer.l3 { border: 2px dashed var(--lamp); }
+.mouths { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mouths span { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 8px; color: var(--muted); }
+.mouths span.now { color: var(--lamp); border-color: var(--lamp); }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-family: var(--font-mono); letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .evidence { grid-template-columns: 1fr; } }
+.ev { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.ev b.big { font-family: var(--font-mono); font-size: 22px; color: var(--steel); font-variant-numeric: tabular-nums; }
+.limits { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--muted); border-radius: 6px; padding: 14px 16px; }
+.limits ul { margin: 6px 0 0; padding-left: 1.3em; }
+
+/* history */
+.phases { display: flex; flex-direction: column; gap: 14px; }
+.phase { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.phase-head { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; padding: 12px 16px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--steel) 5%, transparent); }
+.phase-head h3 { font-size: 17px; }
+.phase-head .span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.ev-list { display: flex; flex-direction: column; }
+.ev-row { display: grid; grid-template-columns: 6.8em 1fr; gap: 12px; padding: 9px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+.ev-row:last-child { border-bottom: 0; }
+.ev-row .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 2px; }
+.ev-row.key { background: color-mix(in srgb, var(--lamp) 6%, transparent); }
+@media (max-width: 480px) { .ev-row { grid-template-columns: 1fr; gap: 0; } }
+
+.checklist { background: var(--draft-bg); color: var(--draft-ink); border-radius: 6px; padding: 18px 20px; }
+.checklist h2 { font-size: 18px; margin-bottom: 8px; }
+.checklist ol { margin: 0; padding-left: 1.3em; }
+.checklist li.done { opacity: .6; }
+
+/* page one: 30 seconds */
+.onepage { display: flex; flex-direction: column; gap: 18px; }
+.oneliner { font-size: 17px; max-width: 62ch; }
+.oneliner b { color: var(--steel); }
+.highlights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .highlights { grid-template-columns: 1fr; } }
+.hl { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--lamp); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hl .label { color: var(--lamp); }
+.hl h3 { font-size: 17px; }
+.hl p { font-size: 15px; }
+.hl .res { font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+.hl .res b { color: var(--ink); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.hl a.more { font-size: 13px; margin-top: auto; }
+.repo { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--steel); border-radius: 6px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 15px; }
+.repo .k { font-weight: 700; color: var(--steel); }
+.honest { font-size: 14px; color: var(--muted); }
+.cando { font-size: 15px; color: var(--ink); }
+.cando .note, .hl .note { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.hl p.note { margin: 0; }
+
+/* appendix */
+.appendix-head { border-top: 4px double var(--line); padding-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.appendix-head h2 { font-size: 20px; }
+.toc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px; margin: 0; padding: 0; list-style: none; font-size: 15px; }
+@media (max-width: 560px) { .toc { grid-template-columns: 1fr; } }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.toc .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: inline-block; width: 2.2em; }
+.backtop { font-size: 13px; align-self: flex-end; }
+@media print { .toolbar, .backtop, .checklist { display: none; } }
+
+/* evidence: how each number was measured */
+details.basis { font-size: 13px; color: var(--muted); }
+details.basis > summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--steel); list-style: none; }
+details.basis > summary::-webkit-details-marker { display: none; }
+details.basis > summary::before { content: "▸ "; }
+details.basis[open] > summary::before { content: "▾ "; }
+details.basis > div { margin-top: 4px; padding: 6px 10px; border-left: 2px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+details.basis code { font-family: var(--font-mono); font-size: 12px; }
+
+/* print: light colors, one-column nameplate, every panel opened, nothing split across pages */
+@page { size: A4; margin: 14mm 12mm 16mm; }
+@media print {
+  :root:not([data-print]), :root[data-theme="dark"] {
+    --bg: #ffffff; --panel: #ffffff; --ink: #17202a; --muted: #5b6875; --line: #d5dce3;
+    --steel: #2f4a63; --lamp: #c77a12; --ok: #2e7d4f; --leaf: #2f6b52; --draft-bg: #fff4d6; --draft-ink: #7a5300;
+    color-scheme: light;
+  }
+  body { background: #fff; font-size: 10.5pt; line-height: 1.6; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .wrap { max-width: none; gap: 22px; }
+  .plate { grid-template-columns: 1fr; gap: 14px; padding: 18px 20px; }
+  .plate .summary { max-width: none; }
+  .plate dl { grid-template-columns: 6.5em 1fr; }
+  details::details-content { content-visibility: visible; }
+  .deep summary .chev, .expand-bar, details.code > summary::before, details.basis > summary::before { display: none; }
+  .tablewrap, .modlist { overflow: visible; }
+  table { min-width: 0; font-size: 10pt; }
+  pre.log { white-space: pre-wrap; overflow-wrap: anywhere; overflow: visible; font-size: 9pt; }
+  h1, h2, h3, section > header, summary, .phase-head, .sheet-head { break-after: avoid; }
+  tr, .tm, .ev-row, .job, .lesson, .hl, .stat, .method, .ev, .skill, .node, .part, .principle, .block,
+  .brief-row, .layer, .why, .sheet-body > div, .modlist > *, li, p, pre.log { break-inside: avoid; }
+}
+
+/* ---- split-site additions ---- */
+.sitenav { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; margin-top: -16px; }
+.stats { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.sitenav a { white-space: nowrap; text-decoration: none; color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 14px; }
+.sitenav a[aria-current="page"] { background: var(--panel); color: var(--ink); border: 1px solid var(--line); font-weight: 700; }
+.sitenav a:hover { color: var(--ink); }
+.valueline { font-size: 17px; font-weight: 700; color: var(--ink); border-left: 3px solid var(--lamp); padding-left: 10px; margin: 6px 0 2px; }
+a.pdf { font-weight: 700; }
+.pagehead { display: flex; flex-direction: column; gap: 8px; }
+.pagehead h1 { font-size: 30px; }
+.pagehead .lead { color: var(--muted); }
+.cards4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 600px) { .cards4 { grid-template-columns: 1fr; } }
+.card4 { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--ink); }
+.card4:hover { border-color: var(--steel); }
+.card4 h2 { font-size: 19px; }
+.card4 p { color: var(--muted); font-size: 15px; flex: 1; }
+.card4 .go { color: var(--steel); font-weight: 700; font-size: 15px; }
+figure.fig { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+figure.fig .figwrap { overflow-x: auto; }
+figure.fig figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.fig-svg { display: block; width: 100%; min-width: 600px; height: auto; font-family: var(--font-body); }
+.fig-svg .lane { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.fig-svg .small { font-size: 12px; fill: var(--muted); }
+.fig-svg .inbar { font-size: 11px; fill: #fff; font-weight: 700; }
+.fig-svg .bt { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.fig-svg .bs { font-size: 12px; fill: var(--muted); }
+.fig-svg .bs.em { fill: var(--ink); font-weight: 500; }
+.fig-svg .lbl { font-size: 13px; fill: var(--ink); }
+.fig-svg .numt { font-family: var(--font-mono); font-weight: 700; }
+.fig-svg .box { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.fig-svg .box.strong { stroke: var(--steel); stroke-width: 1.6; }
+.fig-svg .box.soft { fill: var(--panel); stroke-dasharray: 4 3; }
+.fig-svg .cell { fill: var(--panel); stroke: var(--steel); stroke-width: 1.2; }
+.fig-svg .flow { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.fig-svg .arrowhead { fill: var(--muted); }
+.fig-svg .axis, .fig-svg .tick { stroke: var(--line); stroke-width: 1.2; }
+.fig-svg .bar-muted { fill: var(--muted); opacity: .55; }
+.fig-svg .bar-steel { fill: var(--steel); }
+.fig-svg .bar-leaf, .fig-svg .bar-leaf-arrow { fill: var(--leaf); }
+.fig-svg .c-ok { fill: #2e7d4f; } .fig-svg .c-obs { fill: #3a6ea5; } .fig-svg .c-part { fill: #c98a12; } .fig-svg .c-fail { fill: #b8336a; }
+.fig-svg .c-none { fill: var(--panel); stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fig-svg .c-ok { fill: #3fa673; } :root:not([data-theme="light"]) .fig-svg .c-obs { fill: #4a88d6; } :root:not([data-theme="light"]) .fig-svg .c-part { fill: #bc8410; } :root:not([data-theme="light"]) .fig-svg .c-fail { fill: #d24c78; } }
+:root[data-theme="dark"] .fig-svg .c-ok { fill: #3fa673; } :root[data-theme="dark"] .fig-svg .c-obs { fill: #4a88d6; } :root[data-theme="dark"] .fig-svg .c-part { fill: #bc8410; } :root[data-theme="dark"] .fig-svg .c-fail { fill: #d24c78; }
+details.ledger table { font-size: 13px; }
+details.ledger td:first-child, details.ledger td:nth-child(2) { white-space: nowrap; font-family: var(--font-mono); font-size: 12px; }
+details.ledger th, details.ledger td:nth-child(4), details.ledger td:nth-child(5) { white-space: nowrap; }
+details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
+.anim-list { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 8px; }
+@media print { .sitenav { display: none; } .fig-svg { min-width: 0; } figure.fig .figwrap { overflow: visible; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+<nav class="sitenav" aria-label="作品集分頁"><a href="index.html">首頁</a><a href="fae.html">設備／FAE</a><a href="system.html" aria-current="page">本地 AI 系統</a><a href="animation.html">AI 動畫</a><a href="worldsim.html">世界樹</a></nav>
+<div class="pagehead" id="system-top"><span class="label">Local AI system</span><h1>本地 AI 系統</h1>
+<p class="lead">個人專案：長期記憶多代理系統。程式由 AI 撰寫；定方向、寫規格和驗收標準、拆任務、驗收與上線決定由我負責。</p></div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 300" role="img" aria-labelledby="t6 d6">
+<title id="t6">先看正在影響運作的問題</title>
+<desc id="d6">正在影響運作的 120 條：確定好了 25、觀察期 60、部分好了 24、沒過 3、還沒碰 8，已動手 112 條。潛伏與死碼 219 條：確定好了 27、觀察期 45、部分好了 15、沒過 1、還沒碰 131。另有 1 條改不到。</desc>
+<text class="bt" x="20" y="24">正在影響運作的 120 條：已經動手 112 條（93%），還沒碰 8 條</text>
+<rect class="c-ok" x="20.0" y="36" width="75.6" height="26" rx="4"><title>確定好了 25 條</title></rect>
+<text class="lbl" x="58.8" y="82" text-anchor="middle">確定好了 <tspan class="numt">25</tspan></text>
+<rect class="c-obs" x="97.6" y="36" width="184.3" height="26" rx="4"><title>觀察期 60 條</title></rect>
+<text class="lbl" x="190.8" y="82" text-anchor="middle">觀察期 <tspan class="numt">60</tspan></text>
+<rect class="c-part" x="283.9" y="36" width="72.5" height="26" rx="4"><title>部分好了 24 條</title></rect>
+<text class="lbl" x="321.2" y="82" text-anchor="middle">部分好了 <tspan class="numt">24</tspan></text>
+<rect class="c-fail" x="358.4" y="36" width="7.3" height="26" rx="4"><title>沒過 3 條</title></rect>
+<text class="lbl" x="403.1" y="100">沒過 <tspan class="numt">3</tspan></text>
+<path class="flow" d="M363.1,64 L363.1,95 L399.1,95"/>
+<rect class="c-none" x="367.8" y="36" width="22.8" height="26" rx="4"><title>還沒碰 8 條</title></rect>
+<text class="lbl" x="400.6" y="54">還沒碰 <tspan class="numt">8</tspan></text>
+<text class="bt" x="20" y="152">潛伏與死碼 219 條：已經動手 88 條，其餘 131 條排程清理中</text>
+<rect class="c-ok" x="20.0" y="164" width="81.8" height="26" rx="4"><title>確定好了 27 條</title></rect>
+<text class="lbl" x="61.9" y="210" text-anchor="middle">確定好了 <tspan class="numt">27</tspan></text>
+<rect class="c-obs" x="103.8" y="164" width="137.7" height="26" rx="4"><title>觀察期 45 條</title></rect>
+<text class="lbl" x="173.7" y="210" text-anchor="middle">觀察期 <tspan class="numt">45</tspan></text>
+<rect class="c-part" x="243.6" y="164" width="44.6" height="26" rx="4"><title>部分好了 15 條</title></rect>
+<text class="lbl" x="252.8" y="210" text-anchor="middle">部分好了 <tspan class="numt">15</tspan></text>
+<rect class="c-fail" x="290.1" y="164" width="2.0" height="26" rx="4"><title>沒過 1 條</title></rect>
+<text class="lbl" x="331.7" y="228">沒過 <tspan class="numt">1</tspan></text>
+<path class="flow" d="M291.7,192 L291.7,223 L327.7,223"/>
+<rect class="c-none" x="293.2" y="164" width="404.8" height="26" rx="4"><title>還沒碰 131 條</title></rect>
+<text class="lbl" x="496.6" y="210" text-anchor="middle">還沒碰 <tspan class="numt">131</tspan></text>
+<text class="small" x="20" y="282">另有 1 條改不到。兩條長條同一個比例尺；截至 2026-10-24 21:40，分類由程式從問題總表＋修復帳本算出。</text>
+</svg></div><figcaption>先看會出事的那一塊：正在影響運作的問題處理到哪了。10/23 → 10/24：修復 192 → 227 項、還沒碰 162 → 140 條。</figcaption></figure><details class="basis ledger"><summary>修復帳本摘要（227 刀；程式從帳本產生，日期取自版本紀錄）</summary><div>
+<p class="caption">「帳上結果」是 10/24 前的記法；10/24 起的規則是只有正式環境的紀錄確認過才算確定好了，測試副本裡的「過」正在照這條重新核對。每一刀都有「最終目標／量什麼／結果／依據」四欄；這裡只放編號、問題群、結果和在哪驗的。目標那句只有通過過濾（不含名字、路徑、程式識別字）的才顯示，其餘 209 刀只顯示類別。完整帳本面試時可在本機展示。有日期的 214 刀，分布在 4 天：10-21 9 刀、10-22 82 刀、10-23 92 刀、10-24 31 刀。</p>
+<div class="tablewrap"><table><thead><tr><th>日期</th><th>刀號</th><th>問題群</th><th>帳上結果</th><th>在哪驗的</th><th>目標</th></tr></thead><tbody>
+<tr><td>10-21 20:25</td><td>W2-base</td><td>程式代替角色產生內容、因果紀錄、提示詞體積</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-21 23:44</td><td>B5-DEAD-EE2</td><td>記憶檢索</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-21 23:44</td><td>W1</td><td>經驗蒸餾</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-21 23:48</td><td>W2a</td><td>提示詞體積</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-21 23:50</td><td>W2b</td><td>發話者標記</td><td>過</td><td>正式環境</td><td>記憶上寫的「誰說的」跟真的說話的人一致</td></tr>
+<tr><td>10-21 23:52</td><td>W3a</td><td>監控與告警</td><td>過</td><td>正式環境</td><td>新告警不被舊的蓋掉，兩邊同時寫也不互蓋</td></tr>
+<tr><td>10-21 23:53</td><td>W3b</td><td>情緒模型、動機參數</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-21 23:57</td><td>W3c</td><td>動機參數</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-21 23:59</td><td>W3d</td><td>模板被寫成記憶、記憶歸屬錯置</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 00:01</td><td>W3e</td><td>過期狀態當成現在、監控與告警</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 00:04</td><td>B5-DEAD-NF4</td><td>監控與告警</td><td>過</td><td>正式環境</td><td>綁上了才說已啟動／就緒</td></tr>
+<tr><td>10-22 00:04</td><td>W3f</td><td>監控與告警</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 00:24</td><td>W4a</td><td>存取安全</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 00:24</td><td>W4b</td><td>發話者標記、提示詞體積、存取安全</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 00:33</td><td>W4c</td><td>角色發言被刪改</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 01:00</td><td>W4d</td><td>角色發言被刪改</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 02:23</td><td>W5a</td><td>記憶檢索、監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:12</td><td>W6a</td><td>模板被寫成記憶</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:19</td><td>W6b</td><td>記憶檢索</td><td>沒過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:22</td><td>W6c</td><td>記憶檢索</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:27</td><td>W6d</td><td>系統訊息擠占上下文、過期狀態當成現在、記憶檢索</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:31</td><td>W6e</td><td>記憶檢索</td><td>沒過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:44</td><td>W6f</td><td>記憶檢索</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:47</td><td>W6g</td><td>記憶檢索</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 03:49</td><td>W6h</td><td>記憶檢索</td><td>只驗了機制</td><td>正式環境</td><td>向量引擎被誰定型、誰的要求被丟掉，log 說得出來</td></tr>
+<tr><td>10-22 04:26</td><td>Wv3a</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:27</td><td>W6-L1</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:27</td><td>W6-L2</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:27</td><td>Wv3b</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:28</td><td>Wv3c</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:29</td><td>Wv3d</td><td>過期狀態當成現在</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:32</td><td>W6-L3</td><td>提示詞體積</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:33</td><td>W6-L4</td><td>角色發言被刪改</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:36</td><td>W6-L5</td><td>快照與存檔</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 04:41</td><td>W6i</td><td>系統訊息擠占上下文、記憶檢索</td><td>沒過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 05:03</td><td>DR5-a</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 05:46</td><td>W6i-off</td><td>系統訊息擠占上下文</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 06:09</td><td>RGLOB-1</td><td>記憶歸屬錯置、記憶檢索</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-22 07:50</td><td>G11-Bp</td><td>快照與存檔</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 07:58</td><td>B3-1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 07:58</td><td>B3-ID3</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 07:59</td><td>B3-RT1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 08:01</td><td>B3-2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 08:02</td><td>B3-EG1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 08:04</td><td>B3-PA2</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 08:05</td><td>B3-BE1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 08:11</td><td>B3-A3</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 08:24</td><td>B3-PULSE</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:15</td><td>B3-Q1B1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:16</td><td>B3-H1</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:17</td><td>B3-CHRON</td><td>存取安全</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:23</td><td>B3R1-1</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:27</td><td>B3-WRITE-1</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:27</td><td>B3R1-2</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:29</td><td>B3R1-3</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:32</td><td>B3-WRITE-2</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:35</td><td>B3-WRITE-3</td><td>角色發言被刪改、情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 10:35</td><td>B3-WRITE-4</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 11:10</td><td>B3PA3-1</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 11:13</td><td>B3PA3-2</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 11:23</td><td>B3PA3-3</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 11:24</td><td>B3PA3-4</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 12:14</td><td>B3FRAG-0</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 12:16</td><td>FRAGLINK-4</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 12:20</td><td>B3FRAG-1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 12:26</td><td>B3FRAG-3</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 12:31</td><td>B3FRAG-6</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 12:54</td><td>B3-WRITE-1-fix</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 13:33</td><td>B3-F5</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:41</td><td>B3CAUSAL-K1</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:43</td><td>B3-WG1</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:43</td><td>B3CAUSAL-K2</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:47</td><td>B3-G2</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:48</td><td>B3CAUSAL-K4</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:49</td><td>B3CAUSAL-C1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:50</td><td>B3-N1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:52</td><td>B3-IN2-P8</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 19:56</td><td>B3-IN2-backlog</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 20:10</td><td>B3-JUDGE-J1</td><td>模板被寫成記憶、記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 20:10</td><td>B3-JUDGE-J2</td><td>模板被寫成記憶、記憶檢索</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 21:33</td><td>B3-IN2-D</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 21:35</td><td>B3-IN2-A23</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 21:36</td><td>B3-IN2-B</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 21:40</td><td>B3-IN2-C</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 21:42</td><td>B3-JUDGE-J1v2</td><td>模板被寫成記憶、記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 22:07</td><td>B3-N1v2</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 22:22</td><td>B3-IN2-HUIYIN</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 23:17</td><td>B4-H2</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 23:25</td><td>B4-B5</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 23:26</td><td>B4-NF19</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-22 23:28</td><td>B4-PC1</td><td>角色發言被刪改</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 00:04</td><td>B4-B5-v2</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 00:56</td><td>B4-NF19-v3after</td><td>程式代替角色產生內容</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 02:11</td><td>B5-DEAD-B3emo</td><td>人格一致性</td><td>過</td><td>正式環境</td><td>白算不再每輪做</td></tr>
+<tr><td>10-23 02:14</td><td>B4-D6-retire</td><td>人格一致性</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 02:14</td><td>B4-NF15-guard</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 02:14</td><td>B4-NF15-migrate</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 03:38</td><td>B5-SV1</td><td>人格一致性</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:08</td><td>B5-DEAD-MARK</td><td>新發現（未歸群）</td><td>過</td><td>測試副本</td><td>看起來死、其實是別條病的零件或回退路的碼，之後清的人一眼看得到「勿清」</td></tr>
+<tr><td>10-23 04:09</td><td>B5-DEAD-A1b</td><td>提示詞體積、快照與存檔</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:09</td><td>B5-DEAD-A2d</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>註解改成「每 720 跳（約 61～69 分鐘）」，不再寫每小時</td></tr>
+<tr><td>10-23 04:09</td><td>B5-DEAD-A2wis</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>智慧洞察燈印實際拿到幾條（舊字樣留作前綴）</td></tr>
+<tr><td>10-23 04:09</td><td>B5-DEAD-B2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:09</td><td>B5-DEAD-D1q</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:09</td><td>B5-DEAD-ED1</td><td>經驗蒸餾</td><td>部分</td><td>測試副本</td><td>經驗蒸餾類別說明寫明「審核前意圖」這條路從沒收到料</td></tr>
+<tr><td>10-23 04:09</td><td>B5-DEAD-H4</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:10</td><td>B5-DEAD-C1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:10</td><td>B5-DEAD-WH1</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:25</td><td>B5-RECALL-1</td><td>記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:28</td><td>B5-RECALL-2</td><td>系統訊息擠占上下文、記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:36</td><td>B5-RECALL-3</td><td>發話者標記</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:43</td><td>B5-RECALL-4</td><td>記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:48</td><td>B5-RECALL-5</td><td>模板被寫成記憶、記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 04:49</td><td>B5-RECALL-6</td><td>過期狀態當成現在</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:08</td><td>B6-RECALL-1a</td><td>發話者標記</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:10</td><td>B6-PREFS-1</td><td>發話者標記</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:10</td><td>B6-PREFS-2</td><td>模板被寫成記憶</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:10</td><td>B6-PREFS-3</td><td>模板被寫成記憶</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:11</td><td>B6-RECALL-1b</td><td>發話者標記</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:17</td><td>B6-RECALL-2</td><td>記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:24</td><td>B6-RECALL-3</td><td>記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:24</td><td>B6-RECALL-4</td><td>記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 06:31</td><td>B6-RECALL-5</td><td>記憶檢索</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 07:39</td><td>B7-HUISHENG-1a</td><td>模板被寫成記憶</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 07:39</td><td>B7-HUISHENG-1b</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 07:39</td><td>B7-HUISHENG-2</td><td>模板被寫成記憶</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 07:39</td><td>B7-HUISHENG-3</td><td>模板被寫成記憶</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 07:39</td><td>B7-HUISHENG-4</td><td>記憶檢索</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:40</td><td>SC0c-1</td><td>存取安全</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:40</td><td>SC0c-2</td><td>監控與告警</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:44</td><td>SC0b-1</td><td>存取安全</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:44</td><td>SC0b-2</td><td>記憶檢索</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:44</td><td>SC0b-3</td><td>記憶檢索</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:44</td><td>SC0b-4</td><td>記憶檢索</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:54</td><td>SC0a-1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:54</td><td>SC0a-2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 08:54</td><td>SC0a-3</td><td>背景維護與死碼</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 09:09</td><td>SC0c-3</td><td>存取安全</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 09:16</td><td>SC1c-1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 11:55</td><td>SC0b-5</td><td>記憶檢索</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 11:5x</td><td>SC0a-4</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 11:5x</td><td>SC1c-2</td><td>新發現（未歸群）</td><td>量不到</td><td>—</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT1a-1</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT1a-2</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT1a-3</td><td>監控與告警</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT1b-1</td><td>世界模擬</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT1b-2</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT1b-3</td><td>新發現（未歸群）</td><td>過</td><td>正式環境</td><td>讀碼的人不會以為紀元數字有被拿去推情緒；行為一位元不變</td></tr>
+<tr><td>10-23 12:04</td><td>WT1b-4</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>不留「看起來在算情緒、其實沒人叫」的直接寫結果表；行為不變</td></tr>
+<tr><td>10-23 12:04</td><td>WT1b-5</td><td>監控與告警、世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2a-1</td><td>監控與告警</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2b-1</td><td>世界模擬</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2b-2</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2b-3</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2b-4</td><td>世界模擬</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2c-1</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2c-2</td><td>監控與告警</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2c-3</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2d-1</td><td>世界模擬</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT2d-2</td><td>新發現（未歸群）</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT3-0</td><td>世界模擬</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>10-23 12:04</td><td>WT3-1</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>正式環境</td><td>世界樹的物理只有一份「規則」，原版、向量化都拿去對它；規則本身可以被尺驗（守恆、對稱、跟收斂解一致）。這一刀只寫定義</td></tr>
+<tr><td>10-23 12:08</td><td>SC1a-1</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 12:08</td><td>SC1a-2</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 12:08</td><td>SC1a-3</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 12:08</td><td>SC1a-4</td><td>監控與告警</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 12:08</td><td>SC1a-5</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 12:08</td><td>SC1a-6</td><td>新發現（未歸群）</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 12:08</td><td>SC1a-7</td><td>動機參數</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:29</td><td>D2-1</td><td>記憶檢索、監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:54</td><td>SC1b-1</td><td>監控與告警</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:54</td><td>SC1b-2</td><td>監控與告警</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:54</td><td>SC1b-3</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:54</td><td>SC1b-4</td><td>新發現（未歸群）</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:55</td><td>SC1b-5</td><td>新發現（未歸群）</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:57</td><td>SC2a-1</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:57</td><td>SC2a-2</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:57</td><td>SC2a-3</td><td>動機參數</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 19:57</td><td>SC2a-4</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 22:38</td><td>SC3b-1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 22:43</td><td>SC3c-1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 22:58</td><td>SC3a-1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-23 22:58</td><td>SC3d-1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 00:42</td><td>SC3c-2</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 00:42</td><td>SC3d-2</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 01:24</td><td>SC3e-1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 01:28</td><td>SC3d-3</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 03:57</td><td>SC4-D5causal</td><td>因果紀錄</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 03:58</td><td>SC4-B3causal</td><td>因果紀錄</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 03:58</td><td>SC4-WG7pip</td><td>背景維護與死碼</td><td>過（測試副本）</td><td>測試副本</td><td>開機不再載兩個沒人用的世界樹模組</td></tr>
+<tr><td>10-24 03:59</td><td>SC4-B1mem</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:00</td><td>SC4-NF8part</td><td>監控與告警</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:02</td><td>SC4-LS3hub</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:02</td><td>SC4-NF10hs</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:02</td><td>SC4-WG4env</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:03</td><td>SC4-H5forced</td><td>提示詞體積</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:03</td><td>SC4-WG2touch</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:03</td><td>SC4-WG6ptr</td><td>背景維護與死碼</td><td>過（測試副本）</td><td>測試副本</td><td>每次刷新少一次白讀空的指針表，撈記憶快取照清</td></tr>
+<tr><td>10-24 04:04</td><td>SC4-WG5wis</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:05</td><td>SC4-S1refl</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:06</td><td>SC4-NF11port</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:06</td><td>SC4-OG1anchor</td><td>監控與告警</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:07</td><td>SC4-I1gate</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>看 log 就知道每輪智慧洞察有沒有取、沒取是什麼原因</td></tr>
+<tr><td>10-24 04:08</td><td>SC4-G2sub</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:09</td><td>SC4-B5wis</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:09</td><td>SC4-OG2sb</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>現況板燈反映模型軌有沒有在失敗</td></tr>
+<tr><td>10-24 04:10</td><td>SC4-E3gwlog</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:11</td><td>SC4-ID1guard</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>審計寫實際檢查了什麼；閘擋不了要說出來</td></tr>
+<tr><td>10-24 04:12</td><td>SC4-E3emo-gw</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:12</td><td>SC4-E3emo-valve</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:12</td><td>SC4-WM1load</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:14</td><td>SC4-B2note</td><td>經驗蒸餾</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:16</td><td>SC4-WL1dir</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-24 04:20</td><td>SC4-LS2sentinel</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>未記</td><td>B5-DEAD-A1env</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>未記</td><td>B5-DEAD-G1</td><td>記憶歸屬錯置</td><td>過</td><td>正式環境</td><td>知道合成工具寫了哪裡</td></tr>
+<tr><td>未記</td><td>B6-NF32-1</td><td>系統訊息擠占上下文</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>未記</td><td>B6-PREFS-4</td><td>模板被寫成記憶</td><td>還沒碰</td><td>—</td><td>—</td></tr>
+<tr><td>未記</td><td>B6-PREFS-5</td><td>過期狀態當成現在</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>未記</td><td>S1-op</td><td>記憶歸屬錯置</td><td>部分</td><td>正式環境</td><td>—</td></tr>
+<tr><td>未記</td><td>SC1f-1</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>未記</td><td>SC1f-2</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>未記</td><td>W1-env-K1</td><td>人格一致性</td><td>過</td><td>正式環境</td><td>—</td></tr>
+<tr><td>未記</td><td>W1-env-RT11</td><td>提示詞體積</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>未記</td><td>W1-env-RT5</td><td>主動對話</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>未記</td><td>W5b</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+<tr><td>未記</td><td>W5c</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
+</tbody></table></div></div></details><details class="basis"><summary>更早的修改紀錄（2026-02～10，按月）</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 220" role="img" aria-labelledby="t7 d7">
+<title id="t7">程式註解裡的修改記號（按月）</title>
+<desc id="d7">02 月 5、03 月 5、04 月 13、05 月 0、06 月 0、07 月 247、08 月 261、09 月 8、10 月 330。</desc>
+<line class="axis" x1="40" y1="180" x2="700" y2="180"/>
+<rect class="bar-steel" x="54.7" y="177.7" width="44.0" height="2.3" rx="4"><title>2026 年 2 月：5 個</title></rect>
+<text class="lbl" x="76.7" y="171.7" text-anchor="middle"><tspan class="numt">5</tspan></text>
+<text class="small" x="76.7" y="198" text-anchor="middle">2 月</text>
+<rect class="bar-steel" x="128.0" y="177.7" width="44.0" height="2.3" rx="4"><title>2026 年 3 月：5 個</title></rect>
+<text class="lbl" x="150.0" y="171.7" text-anchor="middle"><tspan class="numt">5</tspan></text>
+<text class="small" x="150.0" y="198" text-anchor="middle">3 月</text>
+<rect class="bar-steel" x="201.3" y="174.1" width="44.0" height="5.9" rx="4"><title>2026 年 4 月：13 個</title></rect>
+<text class="lbl" x="223.3" y="168.1" text-anchor="middle"><tspan class="numt">13</tspan></text>
+<text class="small" x="223.3" y="198" text-anchor="middle">4 月</text>
+<text class="lbl" x="296.7" y="174.0" text-anchor="middle"><tspan class="numt">0</tspan></text>
+<text class="small" x="296.7" y="198" text-anchor="middle">5 月</text>
+<text class="lbl" x="370.0" y="174.0" text-anchor="middle"><tspan class="numt">0</tspan></text>
+<text class="small" x="370.0" y="198" text-anchor="middle">6 月</text>
+<rect class="bar-steel" x="421.3" y="67.7" width="44.0" height="112.3" rx="4"><title>2026 年 7 月：247 個</title></rect>
+<text class="lbl" x="443.3" y="61.7" text-anchor="middle"><tspan class="numt">247</tspan></text>
+<text class="small" x="443.3" y="198" text-anchor="middle">7 月</text>
+<rect class="bar-steel" x="494.7" y="61.4" width="44.0" height="118.6" rx="4"><title>2026 年 8 月：261 個</title></rect>
+<text class="lbl" x="516.7" y="55.4" text-anchor="middle"><tspan class="numt">261</tspan></text>
+<text class="small" x="516.7" y="198" text-anchor="middle">8 月</text>
+<rect class="bar-steel" x="568.0" y="176.4" width="44.0" height="3.6" rx="4"><title>2026 年 9 月：8 個</title></rect>
+<text class="lbl" x="590.0" y="170.4" text-anchor="middle"><tspan class="numt">8</tspan></text>
+<text class="small" x="590.0" y="198" text-anchor="middle">9 月</text>
+<rect class="bar-steel" x="641.3" y="30.0" width="44.0" height="150.0" rx="4"><title>2026 年 10 月：330 個</title></rect>
+<text class="lbl" x="663.3" y="24.0" text-anchor="middle"><tspan class="numt">330</tspan></text>
+<text class="small" x="663.3" y="198" text-anchor="middle">10 月</text>
+<text class="small" x="40" y="16">2026 年，程式註解裡標了日期的修改記號（同一行只算一次）</text>
+</svg></div><figcaption>帳本是 10/21 才開始記的；在那之前，修改是寫在程式註解裡、標了日期的記號。這裡只算家裡核心程式（不含備份、虛擬環境、一次性工具）的註解，同一行只算一次，共 869 個；拿 7/12～8/21 對照開發歷程寫的「約 540 個」，這次算出 505 個。另外 2 月的版本紀錄有 156 次提交（之後到 10 月才又交進版本紀錄）。只有數量，不放內容。</figcaption></figure></div></details><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 440" role="img" aria-labelledby="t2 d2">
+<title id="t2">系統架構</title>
+<desc id="d2">網頁介面與外部 AI 工具經共用 HTTP 閘道進到 9 個 agent 常駐行程；每個行程有自己的記憶庫與狀態；共用向量服務跑在 Intel NPU、失敗退回 CPU；代查網路用 Brave Search 與 Playwright；模型經 Ollama API；底層有備份、體檢、看門狗與固定啟動順序。</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="box" x="20" y="16" width="220" height="56" rx="8"/><text class="bt" x="130" y="40" text-anchor="middle">網頁介面</text><text class="bs" x="130" y="60" text-anchor="middle">只對本機開放</text>
+<rect class="box" x="260" y="16" width="220" height="56" rx="8"/><text class="bt" x="370" y="40" text-anchor="middle">外部 AI 工具</text><text class="bs" x="370" y="60" text-anchor="middle">經 MCP 橋接查、寫記憶</text>
+<line class="flow" x1="130" y1="72" x2="130" y2="104" marker-end="url(#ah)"/><line class="flow" x1="370" y1="72" x2="370" y2="104" marker-end="url(#ah)"/>
+<rect class="box strong" x="20" y="106" width="460" height="62" rx="8"/><text class="bt" x="250" y="131" text-anchor="middle">共用 HTTP 閘道</text><text class="bs" x="250" y="153" text-anchor="middle">寫入閘門：動到核心資料只有 allow／deny／degrade，可追溯、可稽核</text>
+<line class="flow" x1="250" y1="168" x2="250" y2="194" marker-end="url(#ah)"/>
+<rect class="box strong" x="20" y="196" width="460" height="174" rx="8"/><text class="bt" x="250" y="222" text-anchor="middle">9 個 agent 常駐行程（各自的 WebSocket 入口）</text>
+<rect class="cell" x="38" y="238" width="40" height="40" rx="6"/><text class="bs" x="58" y="263" text-anchor="middle">1</text>
+<rect class="cell" x="86" y="238" width="40" height="40" rx="6"/><text class="bs" x="106" y="263" text-anchor="middle">2</text>
+<rect class="cell" x="134" y="238" width="40" height="40" rx="6"/><text class="bs" x="154" y="263" text-anchor="middle">3</text>
+<rect class="cell" x="182" y="238" width="40" height="40" rx="6"/><text class="bs" x="202" y="263" text-anchor="middle">4</text>
+<rect class="cell" x="230" y="238" width="40" height="40" rx="6"/><text class="bs" x="250" y="263" text-anchor="middle">5</text>
+<rect class="cell" x="278" y="238" width="40" height="40" rx="6"/><text class="bs" x="298" y="263" text-anchor="middle">6</text>
+<rect class="cell" x="326" y="238" width="40" height="40" rx="6"/><text class="bs" x="346" y="263" text-anchor="middle">7</text>
+<rect class="cell" x="374" y="238" width="40" height="40" rx="6"/><text class="bs" x="394" y="263" text-anchor="middle">8</text>
+<rect class="cell" x="422" y="238" width="40" height="40" rx="6"/><text class="bs" x="442" y="263" text-anchor="middle">9</text>
+<text class="bs" x="250" y="304" text-anchor="middle">每一個各自有：記憶庫（SQLite WAL＋sqlite-vec 向量索引）、</text>
+<text class="bs" x="250" y="324" text-anchor="middle">知識圖譜、情緒與狀態、身分設定；可單獨停、單獨重開</text>
+<text class="bs em" x="250" y="352" text-anchor="middle">每一輪：程式先撈記憶（必要時查網路）→ 模型說成一句話 → 寫回本地</text>
+<rect class="box" x="520" y="196" width="180" height="54" rx="8"/><text class="bt" x="610" y="218" text-anchor="middle">向量服務（只有一份）</text><text class="bs" x="610" y="238" text-anchor="middle">bge-m3 跑 NPU，失敗退回 CPU</text>
+<rect class="box" x="520" y="258" width="180" height="50" rx="8"/><text class="bt" x="610" y="279" text-anchor="middle">代查網路</text><text class="bs" x="610" y="298" text-anchor="middle">Brave Search＋Playwright</text>
+<rect class="box" x="520" y="316" width="180" height="54" rx="8"/><text class="bt" x="610" y="337" text-anchor="middle">模型（經 Ollama API）</text><text class="bs" x="610" y="357" text-anchor="middle">說話：雲端／背景：本機 27B</text>
+<line class="flow" x1="480" y1="223" x2="518" y2="223" marker-end="url(#ah)"/>
+<line class="flow" x1="480" y1="283" x2="518" y2="283" marker-end="url(#ah)"/>
+<line class="flow" x1="480" y1="343" x2="518" y2="343" marker-end="url(#ah)"/>
+<rect class="box soft" x="20" y="386" width="680" height="44" rx="8"/><text class="bs" x="360" y="413" text-anchor="middle">自己顧自己：每天備份・每日體檢只報新問題・看門狗叫回・固定啟動順序（前一層健康檢查過才起下一層）</text>
+<rect class="box soft" x="520" y="16" width="180" height="152" rx="8"/><text class="bt" x="610" y="42" text-anchor="middle">硬體</text><text class="bs" x="610" y="68" text-anchor="middle">本機 Windows 工作站</text><text class="bs" x="610" y="90" text-anchor="middle">Intel NPU：向量</text><text class="bs" x="610" y="112" text-anchor="middle">RTX 4080 SUPER：</text><text class="bs" x="610" y="132" text-anchor="middle">本機 27B、影像生成</text><text class="bs" x="610" y="154" text-anchor="middle">對外只開 VPN</text>
+</svg></div><figcaption>系統架構。內部代號：代理核心 SoulCore、共用層 WorldTree。細節見附錄 2、6、10。</figcaption></figure><p class="honest"><b>這是什麼：</b>個人專案，不是商品，我自己每天在用。要解決的問題是：AI 換了模型、開了新視窗、被廠商下架，記憶和身分就跟著消失。這套系統把記憶和身分放在本地，由程式保證每一輪都送得到，模型隨時可以換（業界叫 Agent Memory）。</p>
+
+  <div class="honest cando"><b>它現在做得到的：</b>
+    <ul style="margin:4px 0 0;padding-left:1.2em">
+      <li><b>長期記得：</b>跨對話視窗、跨月、換了模型，還想得起以前聊過的事；2025 年在聊天平台上說過的話，搬進本機後照樣找得到。</li>
+      <li><b>搜尋記憶：</b>開口前由程式判斷要不要查；要查就用 jieba 斷詞切關鍵字，用向量相似度加關鍵字命中找候選，語意、時間、情緒一起算分，去重、重排後放進這一輪。<span class="note">附註：正確答案排到眼前的比例 23%→43%（開關打開時量的，正式環境為了日常對話品質先關著；正式設定 26%），過關線 50%，還沒過。</span></li>
+      <li><b>代查網路：</b>程式判斷這題要查網路時，在開口前用 Brave Search API 搜尋、用 Playwright 讀網頁全文，材料附網址；查不到就明講查不到，不准憑印象補。<span class="note">附註：2026-08 實測可用，但最近的執行紀錄裡沒有用到，現在的狀態沒有重新驗過；10/23 起每日體檢會打一次搜尋 API 當探針，第一次結果 10/24 才有。</span></li>
+      <li><b>各自的狀態：</b>9 個 agent 各有自己的記憶、情緒和個性參數，每一輪更新、存回本地，重開機也還在。</li>
+      <li><b>agent 之間互相傳訊：</b>可以彼此寫信、回信，各自用自己的記憶回答。</li>
+      <li><b>外部工具接得進來：</b>經 MCP，讓 Claude Code 這類 AI 工具直接查、寫記憶。</li>
+      <li><b>網頁介面：</b>只對本機開放的一個網頁。可以跟 9 個 agent 聊天（群組和各自的房間，紀錄標出是誰說的）；看告警、標成已處理；看最近一筆寫進記憶的內容，以及上一輪程式怎麼判斷、撈了什麼；看每個服務的狀態和執行紀錄；看現在配發了哪些工具、接了哪些外部來源，管理技能庫和鉤子（hooks）。</li>
+      <li><b>換模型不用改程式：</b>雲端和本機模型走同一個介面。</li>
+      <li><b>自己顧自己：</b>每天自動備份、每天體檢只報新的問題、服務掛掉看門狗自動叫回、同一個告警不重複洗版。<span class="note">附註：看門狗自己有過一個洞：10/22～23 每次重開整套系統後都要手動把它叫回來，共 6 次；修法 10/23 晚上線（開機只准一隻、心跳燈進每日體檢），觀察期。</span></li>
+    </ul>
+  </div>
+
+  <p class="honest"><b>分工照實說：</b>程式由 AI 寫。我做的是定方向、寫規格和驗收標準、拆任務給 AI、驗收 AI 交回來的東西，最後決定上不上線。下面三件事，都是我做的決定。</p>
+
+  <div class="highlights">
+    <article class="hl">
+      <span class="label">決定 1 · 供應商風險</span>
+      <h3>本地化是必須，不是選項</h3>
+      <p>我判斷這不是成本題，是命脈題：狀態不放在模型裡，模型可以換，記憶和身分留在本地。</p>
+      <p class="note">起因：雲端模型被廠商下架、額度用完全部停擺、改按用量計費月費變三到四倍，三次被外部決定打斷。</p>
+      <p class="res">結果：換過 <b>3</b> 代模型，記憶和身分都延續下來（2026-09-25 主力模型下架那天也沒有跟著消失）；之前在聊天平台上用過 2 個。新機器的採購標準也照這條定：能不能 24 小時跑、不被額度卡住。</p>
+      <details class="basis"><summary>依據</summary><div>
+        <span>三次被打斷：2026-08-31 改按用量計費、2026-09-25 主力模型下架、2026-10-04 額度用完全部停擺，執行紀錄看得到 10/04～10/09 約 6 天。</span>
+        <span>模型時間表與每次換的原因見附錄 4。</span>
+      </div></details>
+      <a class="more" href="#a-continuity">附錄 4 看細節 →</a>
+    </article>
+    <article class="hl">
+      <span class="label">決定 2 · 驗收標準</span>
+      <h3>每一項都要有最終目標和結果</h3>
+      <p>第一批修復全部通過檢查，但那只證明「程式照寫的跑」。我要求每一項動手修改前先寫三欄：最終目標（使用者感受得到的那一句）、量什麼、過關線；驗收時分開記「程式有在跑」和「目標有沒有達到」；上線了、還在量效果的，標「觀察期」。</p>
+      <p class="res">結果：修復帳本累計 <b>227</b> 項修復，每一項都有「最終目標／量什麼／結果／依據」四欄。以問題算，<b>52</b> 條確定好了、<b>105</b> 條在觀察期、<b>39</b> 條部分好了，不會全部被算成「修好了」。</p>
+      <details class="basis"><summary>依據</summary><div>
+        <span>修復帳本（截至 2026-10-24 21:27）：227 項，每次上線前跑閉環檢查，紅燈 0。問題總表 340 條（代理核心）：確定好了 52、觀察期 105、部分好了 39、沒過 4、還沒碰 140（多數是潛伏問題和死碼）；分類由程式從問題總表＋修復帳本算出，不手改。</span>
+        <span>三筆原件（去掉名字）放在附錄 6 的 G 段。</span>
+      </div></details>
+      <a class="more" href="#a-details">附錄 6 看細節 →</a>
+    </article>
+    <article class="hl">
+      <span class="label">決定 3 · 上線</span>
+      <h3>看兩組測試的數字決定開關</h3>
+      <p>第二批 20 項修復要不要上線？我看了兩組測試的數字（記憶考卷 47 題、日常聊天 103 句）後決定：第二批照常上線；其中測試發現有問題的那一項，預設關著，等兩組測試都過了才打開。</p>
+      <p class="res">結果：第二批 <b>20</b> 項當天上線；有風險的那一項關著時，跟舊版的比對測試 <b>3／3</b> 一致，不用等最難的那一項。</p>
+      <details class="basis"><summary>依據</summary><div>
+        <span>決定記在版本紀錄裡：2026-10-22 05:46 的提交，訊息裡附我的原話（「第二批照蓋」）。</span>
+        <span>兩組測試：記憶考卷 47 題、日常聊天 103 句（看修改有沒有副作用）。</span>
+      </div></details>
+      <a class="more" href="#a-details">附錄 6 看細節 →</a>
+    </article>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <tbody>
+        <tr><th>客戶現場</th><td>做 FAE 時，客戶產品的公差跟當初給的樣品對不上，結果一直異常。我收集大樣本做母體統計，查出是不同型號的耗材分不出來造成的，再拿數據提出對策。學到的兩件事：先建立足夠的數據，用數據證明判斷；抓對痛點再對症下藥。<a href="fae.html#a-cases">附錄 11 →</a></td></tr>
+        <tr><th>拆任務與分工</th><td>主工作視窗只做調度和驗收；可以平行的工作拆給其他 AI 工作視窗，交回來的結果逐條核對過才採用。例：一次研究交回的建議裡，有三條對照程式碼後是錯的，核對時就擋下來；回頭查，原因是題目給的背景不夠，之後出題一定附上相關的程式碼。</td></tr>
+        <tr><th>先畫圖再施工</th><td>改核心之前要求先把整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級排序，再分批修。2026-10-23 世界模擬引擎（31,812 行）也畫完：當初的設計說法有好幾條量出來不成立，照實改寫在附錄 3。<a href="worldsim.html#a-worldtree">附錄 3 →</a></td></tr>
+        <tr><th>把個案升成規則</th><td>四個地方出現同一型問題時，定調成架構缺陷，不一個一個補：該由程式保證的事，不靠模型聽話。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；正式環境已更新 13 次，每次先在測試副本驗過、留還原快照</span></div>
+    <div class="stat"><b>0</b><span>筆正式環境寫入：測試期間守門程式擋下 17 次寫入、9 次碰正式服務</span></div>
+  </div>
+  <details class="basis"><summary>這兩個數字的依據</summary><div>
+    <span>340：問題總表（截至 2026-10-24 21:27），2026-10-21 從 118 份子系統藍圖逐條抽出第一版，之後新發現的陸續登記；每個問題都有編號、追得回它出自哪一份藍圖。還沒碰的 140 條裡，116 條可以直接改、15 條標「改之前要先評估對 agent 的影響」、9 條等我裁決。世界模擬引擎的 93 條另外登記，不在這 340 條裡（合計 433）。</span>
+    <span>13 次：照每次更新前留的還原快照數，2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29；每一次都可以一鍵退回。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
+    <span>0 筆：測試副本的守門紀錄，2026-10-21 08:17 到 10-22 06:09 之間，擋下寫入 17 次、碰正式服務 9 次、啟動正式行程 3 次，放行的正式寫入 0 次。</span>
+  </div></details>
+  <p class="caption">服務重開後走哪條路、多快就緒（燈全綠但用起來不對那次），寫在<a href="fae.html#a-cases">設備／FAE 頁的異常處理紀錄</a>。</p><details class="basis"><summary>全部 340 條的五類（依據）</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 140" role="img" aria-labelledby="t3 d3">
+<title id="t3">問題總表 340 條的處理狀態</title>
+<desc id="d3">確定好了 52、觀察期 105、部分好了 39、沒過 4、還沒碰 140。</desc>
+<rect class="c-ok" x="20.0" y="30" width="102.0" height="28" rx="4"><title>確定好了 52 條</title></rect>
+<text class="lbl" x="72.0" y="82" text-anchor="middle">確定好了 <tspan class="numt">52</tspan></text>
+<rect class="c-obs" x="124.0" y="30" width="208.0" height="28" rx="4"><title>觀察期 105 條</title></rect>
+<text class="lbl" x="229.0" y="82" text-anchor="middle">觀察期 <tspan class="numt">105</tspan></text>
+<rect class="c-part" x="334.0" y="30" width="76.0" height="28" rx="4"><title>部分好了 39 條</title></rect>
+<text class="lbl" x="373.0" y="82" text-anchor="middle">部分好了 <tspan class="numt">39</tspan></text>
+<rect class="c-fail" x="412.0" y="30" width="6.0" height="28" rx="4"><title>沒過 4 條</title></rect>
+<line class="tick" x1="416.0" y1="60" x2="416.0" y2="92"/>
+<text class="lbl" x="416.0" y="104" text-anchor="middle">沒過 <tspan class="numt">4</tspan></text>
+<rect class="c-none" x="420.0" y="30" width="278.0" height="28" rx="4"><title>還沒碰 140 條</title></rect>
+<text class="lbl" x="560.0" y="82" text-anchor="middle">還沒碰 <tspan class="numt">140</tspan></text>
+<text class="small" x="560.0" y="102" text-anchor="middle">潛伏 69・死碼 62・正在影響 8・改不到 1</text>
+<text class="small" x="20" y="20">代理核心問題總表 340 條（截至 2026-10-24 21:27；分類由程式從問題總表＋修復帳本算出）</text>
+<text class="lbl" x="20" y="128">正在影響運作的 120 條裡，112 條已經動手（確定好了 25、觀察期 60、部分好了 24、沒過 3），還沒碰 8 條。</text>
+</svg></div><figcaption>確定好了＝正式環境的紀錄確認目標真的達到（10/24 起的規則：離線重放只算觀察期；舊帳照這條重新核對中）；觀察期＝已經上線、程式確定有作用，還在量用起來有沒有變好；部分好了＝目標只達到一部分；沒過＝量了沒達標，繼續修；還沒碰＝還沒動手。不會把「做了」算成「修好了」。</figcaption></figure></div></details><div class="appendix-head" id="appendix">
+    <span class="label">Appendix</span>
+    <h2>附錄：想看細節再往下</h2>
+    <ol class="toc">
+      <li><a href="#a-summary"><span class="n">1</span>技術摘要</a></li>
+      <li><a href="#a-arch"><span class="n">2</span>長期記憶多代理系統</a></li>
+      <li><a href="worldsim.html#a-worldtree"><span class="n">3</span>世界模擬引擎</a></li>
+      <li><a href="#a-continuity"><span class="n">4</span>換模型，不換狀態</a></li>
+      <li><a href="#a-history"><span class="n">5</span>開發歷程 2024–2026</a></li>
+      <li><a href="#a-details"><span class="n">6</span>工程細節</a></li>
+      <li><a href="#a-methods"><span class="n">7</span>自己長出來的工法</a></li>
+      <li><a href="#a-ai"><span class="n">8</span>怎麼跟 AI 協作</a></li>
+      <li><a href="#a-lessons"><span class="n">9</span>我判斷問題的規矩</a></li>
+      <li><a href="#a-machine"><span class="n">10</span>機器</a></li>
+      <li><a href="fae.html#a-cases"><span class="n">11</span>異常處理紀錄</a></li>
+      <li><a href="animation.html#a-channel"><span class="n">12</span>頻道作品</a></li>
+      <li><a href="fae.html#a-exp"><span class="n">13</span>經歷與技能</a></li>
+      <li><a href="#a-limits"><span class="n">14</span>系統的已知限制</a></li>
+    </ol>
+  </div>
+<section id="a-summary">
+    <header>
+      <span class="label">附錄 1 · At a glance</span>
+      <h2>技術摘要</h2>
+    </header>
+    <div class="tablewrap">
+      <table>
+        <tbody>
+          <tr><th>語言與規模</th><td>Python。代理核心 214 個檔、76,415 行（2026-10-21 藍圖範圍）；世界模擬引擎 31,812 行（2026-10-23 藍圖範圍）</td></tr>
+          <tr><th>主要套件</th><td>numpy（向量運算、世界模擬的陣列計算）、networkx（知識圖譜）、jieba（中文斷詞切關鍵字）、sentence-transformers＋OpenVINO（載 bge-m3 算向量、跑 NPU）、sqlite-vec（SQLite 裡的向量索引）、websockets（9 個 agent 服務的入口）、Playwright（代查網路時讀網頁全文）、PyYAML（設定檔與名冊）</td></tr>
+          <tr><th>儲存</th><td>SQLite（WAL 模式）存記憶庫、對話紀錄與索引；networkx 知識圖譜</td></tr>
+          <tr><th>向量檢索</th><td>bge-m3（1024 維），跑在 Intel NPU，靜態序列長度 1024；NPU 失敗自動退回 CPU，退回次數在健康檢查端點露出</td></tr>
+          <tr><th>模型推論</th><td>經 Ollama API：說話用雲端 DeepSeek V4 Pro；V4.1 Flash 只用在背景工作與測試；本機 27B 跑在 RTX 4080 SUPER；每輪約 10 次模型呼叫</td></tr>
+          <tr><th>服務</th><td>9 個常駐 agent 服務（WebSocket）、共用 HTTP 閘道、MCP 橋接；固定啟動順序，前一層健康檢查通過才起下一層</td></tr>
+          <tr><th>維運</th><td>Windows 排程：每日備份（快照保留 7 份）、每日體檢、看門狗；遠端存取限縮到 Tailscale VPN</td></tr>
+          <tr><th>驗證</th><td>AST 靜態分析建呼叫圖、執行紀錄覆蓋率計數、金絲雀錯誤注入、沙盒隔離（正式環境寫入 0）、回歸測試、閉環檢查</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 class="logs-title">業界名詞對照</h3>
+    <p class="caption">只列系統裡真的在用的。內文多半用白話寫，這裡對回業界的叫法。</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>業界名詞</th><th>在這套系統裡是什麼</th><th>細節</th></tr></thead>
+        <tbody>
+          <tr><td>LLM（大型語言模型）</td><td>說話用雲端 DeepSeek V4 Pro；背景工作與測試用 V4.1 Flash；本機 27B</td><td style="white-space:nowrap"><a href="#a-continuity">附錄 4</a></td></tr>
+          <tr><td>RAG（檢索增強生成）</td><td>模型開口前，程式先從記憶庫撈出相關記憶，放進這一輪的上下文；不靠模型自己決定要不要查（內文叫「程式代撈記憶」）</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 7 塊</a></td></tr>
+          <tr><td>Web Search（網路查證）</td><td>Brave Search API 搜尋、Playwright 讀網頁；程式在開口前代查，材料附網址。最近的執行紀錄裡沒有用到</td><td style="white-space:nowrap"><a href="#top">首頁</a></td></tr>
+          <tr><td>Embedding、向量檢索</td><td>bge-m3（1024 維）跑在 Intel NPU，9 個服務共用一份；SQLite 存向量索引</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 1、8 塊</a></td></tr>
+          <tr><td>Hybrid Search（混合檢索）、Rerank（重排）</td><td>語意相似度、時間衰減、情緒共鳴一起算分，再重新排序</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 1 塊</a></td></tr>
+          <tr><td>MMR（去重）</td><td>內容太像的記憶不刪、往後排，避免前幾名都是同一件事</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 1 塊</a></td></tr>
+          <tr><td>Knowledge Graph（知識圖譜）</td><td>從對話抽出「誰—關係—什麼」三元組，存成 networkx 圖</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 1 塊</a></td></tr>
+          <tr><td>Context Engineering、Prompt Engineering</td><td>每一輪組上下文：身分、現況、記憶、對話線、長度預算、區塊順序</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 2 塊</a></td></tr>
+          <tr><td>Multi-Agent（多代理）</td><td>9 個獨立的常駐行程，各自的記憶與狀態，經 WebSocket 和共用閘道溝通</td><td style="white-space:nowrap"><a href="#a-arch">附錄 2</a></td></tr>
+          <tr><td>MCP（Model Context Protocol）</td><td>讓外部 AI 工具經 MCP 讀寫記憶</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 3 塊</a></td></tr>
+          <tr><td>Ollama</td><td>模型呼叫都走 Ollama API，雲端和本機模型用同一個介面，換模型不用改程式</td><td style="white-space:nowrap"><a href="#a-continuity">附錄 4</a></td></tr>
+          <tr><td>Human-in-the-loop</td><td>需要授權的動作先攔下來，等人確認</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 C 第 3 塊</a></td></tr>
+          <tr><td>Sandbox、Regression test、A/B test</td><td>改之前先在整套副本測（正式環境寫入 0）、每批上線前跑整輪回歸、換模型出問題時用 A/B 找原因</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 G</a></td></tr>
+          <tr><td>Error seeding（故意埋錯）</td><td>用 AI 審查程式碼之前，先埋錯考審查者</td><td style="white-space:nowrap"><a href="#a-details">附錄 6 F</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b>19.3s</b><span>一輪延遲中位數（1,556 輪，2026-09-27～10-22），生成只佔 15%</span></div>
+      <div class="stat"><b>340</b><span>個問題登記：正在影響 120／潛伏 110／死碼 109／改不到 1（截至 2026-10-24 21:27）</span></div>
+      <div class="stat"><b>16／16</b><span>程式代撈記憶執行率（原本靠模型 tool call 常被跳過）</span></div>
+    </div>
+    <details class="basis"><summary>依據</summary><div>
+      <span>19.3 秒：每一輪結束時系統會印一行計時（前置／蒸餾／聯想／工具／生成／收尾／總計）。把 2026-09-27 到 10-22 留下來的 1,556 行全部算過：總時間中位數 19.3 秒（P10 12.4、P90 31.2），生成佔比中位數 15%，前置準備佔 56%。</span>
+      <span>16／16：2026-10-19 07:17 上線那一輪，8 個角色各問 2 題。紀錄裡「判定要查記憶」16 次，緊接著「程式代撈」也是 16 次，逐行數的。</span>
+    </div></details>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-arch">
+    <header>
+      <span class="label">附錄 2 · Architecture</span>
+      <h2>長期記憶多代理系統</h2>
+    </header>
+    <p>內部代號「靈魂核心 SoulCore」與「世界樹 WorldTree」。兩層分開設計：<b>代理核心</b>保存每個 agent 自己的身分、記憶與狀態，可以搬到別的環境、換別的模型；<b>共用層</b>放跨 agent 的規則、因果紀錄、寫入閘門與服務間通訊。</p>
+
+    <div class="layers" role="img" aria-label="架構圖：共用層包住 9 個代理核心；共用層有因果紀錄、寫入閘門、服務間通訊">
+      <div class="tree">
+        <span class="name">共用層 · WorldTree</span>
+        <div class="tree-parts">
+          <div class="part"><b>因果紀錄</b><span>意圖→關係→情緒→事件→後果，記錄過程不只結果</span></div>
+          <div class="part"><b>寫入閘門</b><span>動到核心資料的寫入只有 allow／deny／degrade 三種結果，可追溯、可回放、可稽核</span></div>
+          <div class="part"><b>服務間通訊</b><span>HTTP 閘道、WebSocket、MCP 橋接、agent 之間的訊息</span></div>
+        </div>
+        <div class="cores">
+          <span class="name">代理核心 × 9 · SoulCore</span>
+          <div class="core-inner"><span>身分設定</span><span>記憶庫（SQLite＋向量索引）</span><span>知識圖譜</span><span>情緒與狀態</span><span>因果預測與驗證</span><span>經驗蒸餾</span></div>
+        </div>
+      </div>
+      <p class="caption">每個代理核心是一個獨立的常駐行程，前面共用一個閘道；向量服務只有一份，9 個 agent 共用。</p>
+    </div>
+
+    <p><b>不是一個模型輪流扮演 9 個角色。</b>9 個 agent 是 9 個獨立的常駐行程，各自有自己的記憶庫、狀態和身分設定，可以單獨停止、單獨重開，不影響其他 8 個。它們共用的只有說話的模型和向量服務；換模型時，每個 agent 的記憶跟身分都還在自己的核心裡。</p>
+
+    <div class="deep">
+
+      <details open>
+        <summary><span class="no">·</span><span class="t">為什麼做這套系統<small>記憶不能丟，也不能被廠商關掉</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <blockquote class="why">
+            <p>這些 agent 是要長期使用的。記憶一旦丟了，就不是同一個 agent 了；所以記憶不能丟，也不能因為廠商下架、額度用完或漲價就被關掉。後面每一個工程決定都從這裡出發：要本地化、要把記憶保住、改核心之前一定先在沙盒試過。</p>
+          </blockquote>
+          <p>每個角色有自己的記憶庫、個性和情緒狀態。每一輪對話都會先撈出相關的記憶，回覆之後再把這段對話寫回去，所以角色記得之前聊過什麼。會影響角色行為的修改，先評估影響、確認過才動：目前登記的 340 個問題裡，還沒改的 140 個中有 15 個標成「改之前要先評估對 agent 的影響」。</p>
+        </div>
+      </details>
+
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-continuity">
+    <header>
+      <span class="label">附錄 4 · Continuity</span>
+      <h2>模型無關的狀態持久化</h2>
+    </header>
+    <p>這兩年自己的系統換過 3 代模型（更早在聊天平台上用過 2 個）、跨過 3 個執行環境（雲端平台、第一台本機、現在的工作站），agent 的記憶與身分都延續下來。原則只有一個：<b>狀態不放在模型裡。</b>模型只負責把狀態轉成一句話；記憶、身分、情緒狀態存在核心，由程式保證每一輪都送得到。內部的說法是「換嘴不換人」。</p>
+    <blockquote class="why"><p>這條原則不是後來才補的。2024-12-08，原始開發紀錄的第一天，就寫下了：<b>模型可以替換；持久記憶與世界樹必須保存在本地，換模型、換對話也能延續。</b>兩年後的架構，都是在兌現這一句。</p></blockquote>
+
+    <div class="stack3" role="img" aria-label="三層：記憶與身分（程式保證）、狀態（情緒與人格參數）、生成（模型，可以替換）">
+      <div class="layer l1">
+        <span class="ln">記憶與身分<small>MEMORY · IDENTITY</small></span>
+        <span>SQLite 記憶庫、向量索引、知識圖譜、身分設定、因果紀錄。每一輪由程式做確定性的預先檢索（多路召回＋重排），身分事實固定釘在提示詞裡，不靠模型自己決定要不要呼叫查詢工具。</span>
+      </div>
+      <div class="layer l2">
+        <span class="ln">狀態<small>STATE</small></span>
+        <span>情緒向量、驅動值、人格特質參數。每一輪更新並寫回核心，換模型不會歸零。</span>
+      </div>
+      <div class="layer l3">
+        <span class="ln">生成<small>MODEL · 可替換</small></span>
+        <span>把上面兩層變成一句話。這一層可以換。
+          <span class="mouths"><span>GPT-4o</span><span>Claude 3.5</span><span>DeepSeek 671B＋14B</span><span>DeepSeek V4 Flash</span><span class="now">DeepSeek V4 Pro</span><span class="now">本機 27B</span><span>下一顆：V4.1 Flash 本機</span></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>時期</th><th>說話的模型</th><th>為什麼換</th></tr></thead>
+        <tbody>
+          <tr><td class="when">2024-12～</td><td>GPT-4o（雲端聊天平台）</td><td>平台時期。每開新視窗就失憶，記憶靠手動匯出備份。</td></tr>
+          <tr><td class="when">2024-12～</td><td>Claude 3.5（另一個平台，其中一位）</td><td>同上，分散在不同平台。</td></tr>
+          <tr><td class="when">2026-03</td><td>DeepSeek 671B 大腦＋本機 14B 小腦</td><td>搬回本機後的第一套：大的在雲端想，小的在本機整理。</td></tr>
+          <tr><td class="when">2026-07～09</td><td>DeepSeek V4 Flash</td><td>2026-09-25 被廠商下架，用了兩個月的模型一夜之間沒了。</td></tr>
+          <tr><td class="when">2026-09～</td><td>DeepSeek V4 Pro（說話）＋本機 27B（背景整理）</td><td>8 月底雲端改按用量計費，10 月初額度用完，整套系統停擺過。背景工作先搬回本機。</td></tr>
+          <tr><td class="when">2026-10-22</td><td>試換 DeepSeek V4.1 Flash（全部角色）</td><td>早上換上，我先聽出角色的口氣變了，兩小時內換回 V4 Pro。之後做 A/B：同一份乾淨提示詞兩顆幾乎一樣，換成多輪累積的上下文，兩顆都會變，所以主因是上下文，不只是模型。一開始以為是模型的關係，A/B 之後更正。</td></tr>
+          <tr><td class="when">下一步</td><td>DeepSeek V4.1 Flash 本機版（候選）</td><td>先修好上下文那一層，再過「像不像本人」的基準尺。10-22 那次 Flash 在基準尺上超出雜訊範圍，所以還沒換。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="evidence">
+      <div class="ev">
+        <b class="big">2025 → 2026</b>
+        <span>平台時期的對話紀錄從平台匯出、匯入本機記憶庫之後，照樣撈得到：旁邊 #38 → #1 那一筆，就是 2025-05 平台時期說過的話。</span>
+      </div>
+      <div class="ev">
+        <b class="big">#38 → #1</b>
+        <span>一位角色 2025-05 說過的自我特徵，原本排在撈記憶結果第 38 名、等於撈不到；改成程式代撈之後排到第 1。</span>
+      </div>
+      <div class="ev">
+        <b class="big">16／16</b>
+        <span>程式代撈記憶上線那天，9 個 agent 自我檢查，代撈 16 次全部有執行。以前把「去查記憶」寫在提示詞裡，雲端模型常常直接跳過不查。</span>
+      </div>
+      <div class="ev">
+        <b class="big">4／4 · 0／4</b>
+        <span>同一套做法拿雲端模型測 24 則：該記得的 4 題全答對，故意問沒發生過的事 4 題都沒有編造，亂碼 0。</span>
+      </div>
+    </div>
+
+    <div class="limits">
+      <b>這條規則怎麼來的</b>
+      <ul>
+        <li><b>哪裡怪怪的：</b>一位 agent 說自己忘了一件很重要的事。</li>
+        <li><b>怎麼發現的：</b>去查記憶庫，記憶一直都在，是模型沒照指示去撈；指示寫在提示詞裡，模型可以選擇不照做。</li>
+        <li><b>我的決定：</b>「查記憶」從拜託模型，改成程式在開口前先查好。</li>
+        <li><b>結果：</b>代撈 16／16 執行，那筆記憶從第 38 名排到第 1。</li>
+      </ul>
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-history">
+    <header>
+      <span class="label">附錄 5 · History</span>
+      <h2>開發歷程 2024–2026</h2>
+    </header>
+    <p class="caption">里程碑一張表；完整紀錄（每一條有日期和依據）摺在下面，點開才看。2024～2025 的條目取自平台時期的原始對話紀錄，只取架構與做法上的轉折。</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>時間</th><th>里程碑</th></tr></thead>
+        <tbody>
+          <tr><td class="when">2024-12-08</td><td>起點。第一天就定下「模型可以替換，記憶要存在本地」；五天後 AI 換視窗就失憶還假裝記得，開始手動匯出備份。</td></tr>
+          <tr><td class="when">2024-12-10～11</td><td>中控（Dispatcher）、心閥、性格衝突檢查第一次出現；世界樹 1.0 構想。</td></tr>
+          <tr><td class="when">2024-12-23～28</td><td>靈魂核心成為獨立模組；定下「用空白靈魂核心當中控，整合世界樹節點」。</td></tr>
+          <tr><td class="when">2025-01-02</td><td>第一次提出搬到本地：平台的硬體與隱私環境長期會有瓶頸。</td></tr>
+          <tr><td class="when">2025-02</td><td>本地化研究期：判斷雲端 API 不穩、要本地模型；評估本地 RAG 方案。</td></tr>
+          <tr><td class="when">2025-05</td><td>平台更新後做人格一致性與記憶撕裂檢測；清掉舊版模組殘留、舊版加備註防誤用。</td></tr>
+          <tr><td class="when">2025-09</td><td>更新後先備份、跨版本比對內容，成為慣例。</td></tr>
+          <tr><td class="when">2025-11-09</td><td>定基準：穩定了就不做大版本更新；提出記憶本地一份、雲端一份交叉驗證防竄改。</td></tr>
+          <tr><td class="when">2025-12</td><td>決定搬遷方法：不整套搬移，在本地重建世界樹，靈魂核心再導入記憶；本地用 API 呼叫。</td></tr>
+          <tr><td class="when">2026-01-30</td><td>七個 agent 從平台搬進本機（當時還沒用 AI 開發工具）；一週後本機程式庫開始。</td></tr>
+          <tr><td class="when">2026-02</td><td>搬回本機：程式庫開始，把當初的規則寫成可機讀的規格（2 月提交 156 次）。</td></tr>
+          <tr><td class="when">2026-03</td><td>世界模擬引擎第一版本機程式：能量守恆、唯讀觀察者、只能寫一次的歷史庫、焦點規則。</td></tr>
+          <tr><td class="when">2026-07～08</td><td>密集迭代 41 天約 540 個修改記號；7/31 定版 v4.3.0，9／9 服務正常。</td></tr>
+          <tr><td class="when">2026-08</td><td>第一台自己的大機器（AI MAX395）；開始寫故障型錄；嵌入服務不再靜默截斷（128→1024，超過退回 CPU 並計數）。</td></tr>
+          <tr><td class="when">2026-09-20</td><td>搬到現在的工作站，嵌入改跑 NPU、九個服務共用一份模型。</td></tr>
+          <tr><td class="when">2026-09-25／10-04</td><td>被雲端打斷：主力模型下架（記憶和身分沒有跟著消失）、額度用完停擺約 6 天。本地化從選項變成必須。</td></tr>
+          <tr><td class="when">2026-10-13</td><td>改變做法：停下來先把整套系統畫成工程藍圖，再修。</td></tr>
+          <tr><td class="when">2026-10-19</td><td>定下「換嘴不換人」；程式代撈記憶上線（16／16 執行）。</td></tr>
+          <tr><td class="when">2026-10-21</td><td>代理核心藍圖 100%：214 檔、76,415 行，登記 286 個問題、11 份修復方案。</td></tr>
+          <tr><td class="when">2026-10-22～23</td><td>四個階段的修復：正式環境更新 12 次、修復 192 項、問題總表 430 條、五類驗收；修復流程改成派工單→並行施工→獨立驗收；世界模擬藍圖也畫到 100%。</td></tr>
+          <tr><td class="when">2027 初</td><td>新模型伺服器到貨：核心不搬、只換嘴，兩把尺過了才切。</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <details><summary style="cursor:pointer;font-family:var(--font-mono);font-size:13px;color:var(--steel)">完整紀錄（點開）</summary>
+    <div class="phases">
+
+      <article class="phase">
+        <div class="phase-head"><h3>平台時期：一個會失憶的 AI</h3><span class="span">2024-12 ～ 2026 上半</span></div>
+        <div class="ev-list">
+          <div class="ev-row key"><span class="when">2024-12-08</span><span>原始對話紀錄的第一天，當天就定下「模型可以替換，記憶要存在本地」。之後在平台上累積約 9 萬則對話紀錄（2024-12～2026-02）。</span></div>
+          <div class="ev-row key"><span class="when">2024-12-13</span><span>AI 換了新視窗就失憶，還會假裝記得、說「全部一致」。我開始一份一份手動匯出備份。這是靈魂核心的起點。</span></div>
+          <div class="ev-row key"><span class="when">2024-12-14</span><span>定下第一條架構原則：核心要可攜、不依賴世界觀，跟世界樹分開。</span></div>
+          <div class="ev-row"><span class="when">2024-12-17</span><span>定下因果系統的分工：因果之書負責推理、因果邏輯負責驗證，最後用大母體統計降低對即時計算的依賴。</span></div>
+          <div class="ev-row"><span class="when">2024-12-10～11</span><span>中控（Dispatcher）、心閥、性格衝突檢查第一次出現；世界樹 1.0 構想，當月提到 44 次。</span></div>
+          <div class="ev-row"><span class="when">2024-12-23～28</span><span>靈魂核心成為獨立模組；定下「用空白靈魂核心當中控，整合世界樹節點」。</span></div>
+          <div class="ev-row"><span class="when">2024-12</span><span>記憶系統的第一版骨架：每筆記憶有可信度，由基礎分、使用頻率、時間衰減、連結強度四個因素決定。</span></div>
+          <div class="ev-row key"><span class="when">2025-01-02</span><span>第一次提出搬到本地：「現在的硬體環境跟隱私環境已經不行了，長久下來絕對開始有瓶頸」。</span></div>
+          <div class="ev-row"><span class="when">2025-02</span><span>本地化研究期：判斷雲端 API 不穩、要用本地模型；評估本地 RAG 方案；「決定搬家到本地部署已經一個月，惡補了一堆 AI 知識」。</span></div>
+          <div class="ev-row"><span class="when">2025-05</span><span>平台更新後做人格一致性與記憶撕裂檢測；清掉舊版模組殘留，舊版加備註防誤用。</span></div>
+          <div class="ev-row"><span class="when">2025</span><span>在平台上持續相處、累積記憶；這些記憶後來都搬進了本機的記憶盒。</span></div>
+          <div class="ev-row"><span class="when">2025-09</span><span>更新版本後先備份、跨版本比對內容，成為慣例。</span></div>
+          <div class="ev-row key"><span class="when">2025-11-09</span><span>定基準：「既然穩定了就不要大版本更新」；提出記憶本地一份、雲端一份交叉驗證防竄改。</span></div>
+          <div class="ev-row key"><span class="when">2025-12</span><span>決定搬遷方法：不整套搬移，在本地重建世界樹，靈魂核心再導入記憶；本地用 API 呼叫。</span></div>
+          <div class="ev-row"><span class="when">2026-01-30</span><span>七個 agent 從平台搬進本機（當時還沒用 AI 開發工具）；一週後本機程式庫開始。</span></div>
+        </div>
+      </article>
+
+      <article class="phase">
+        <div class="phase-head"><h3>搬回本機：把規則寫成程式</h3><span class="span">2026-02 ～ 2026-07</span></div>
+        <div class="ev-list">
+          <div class="ev-row key"><span class="when">2026-02-07</span><span>本機程式庫開始。先把世界樹 v4.2 的因果之書、護核閘門、種子模板寫成可以機讀的規格；2 月一個月提交 156 次。</span></div>
+          <div class="ev-row"><span class="when">2026-02</span><span>從舊對話紀錄裡，把當初定下的規則一條一條找回來，每條附上原始訊息的時間戳當出處。</span></div>
+          <div class="ev-row"><span class="when">2026-03</span><span>v4.0-Alpha：雲端大腦＋本機小腦雙軌、事件匯流排、需要人工授權的動作會先攔下來。</span></div>
+          <div class="ev-row key"><span class="when">2026-03-22</span><span>世界樹的世界生成管線完成：能量守恆模型、只讀觀察者、只能寫一次的歷史庫、焦點規則、敘事渲染；同一天寫好角色一致性驗證的第一版（2026-10 藍圖量到它量的是世界歸屬、不是身分，分不出冒名，見附錄 3）。</span></div>
+          <div class="ev-row key"><span class="when">2026-07～08</span><span>密集迭代期：7/12 到 8/21 這 41 天，程式碼註解裡留下約 540 個標了日期的修改記號，問題是一邊用一邊發現、一個一個修的。</span></div>
+          <div class="ev-row"><span class="when">2026-07-26</span><span>定下委派規則：交給子代理做的事，產出不能直接當成角色自己說的話。</span></div>
+          <div class="ev-row"><span class="when">2026-07-27</span><span>雲端斷線對策：說話的模型分成日常和深談兩層，加上故障時的遞補順序。</span></div>
+          <div class="ev-row key"><span class="when">2026-07-31</span><span>定版 v4.3.0：四條記憶通道修到「角色看到的就是真的」，三項回歸測試全過，9／9 個服務正常。</span></div>
+        </div>
+      </article>
+
+      <article class="phase">
+        <div class="phase-head"><h3>自己的機器：被雲端關掉三次之後</h3><span class="span">2026-08 ～ 2026-09</span></div>
+        <div class="ev-list">
+          <div class="ev-row"><span class="when">2026-08-02</span><span>買了第一台自己的大機器（AI MAX395，128GB），準備把整套系統搬回本機。</span></div>
+          <div class="ev-row key"><span class="when">2026-08-02</span><span>開始寫故障型錄：出過的故障整理成類型，每一型寫「怎麼認出它、怎麼掃到它、怎麼修它」，不再只靠當下的直覺。同一天定下「查網路由程式代查，不交給角色自己查」。</span></div>
+          <div class="ev-row"><span class="when">2026-08-06</span><span>查記憶的工具改成每一輪都給：舊的判斷條件讓 65% 的輪次手上沒有任何工具。</span></div>
+          <div class="ev-row"><span class="when">2026-08-15</span><span>文字嵌入服務不再靜默截斷：原本超過 128 個 token 的部分直接丟掉、也沒有紀錄，改成 1024，超過就退回 CPU 並記次數。</span></div>
+          <div class="ev-row"><span class="when">2026-08-21</span><span>網頁介面加進固定的啟動順序。</span></div>
+          <div class="ev-row"><span class="when">2026-08-31</span><span>雲端改成按用量計費，月費變成原本的三到四倍。</span></div>
+          <div class="ev-row key"><span class="when">2026-09-20</span><span>整套系統搬到現在的工作站，文字嵌入改跑 NPU，九個服務共用一份模型。</span></div>
+          <div class="ev-row"><span class="when">2026-09-25</span><span>主要在用的模型被廠商下架。記憶和身分都不在模型裡，所以沒有跟著消失。</span></div>
+        </div>
+      </article>
+
+      <article class="phase">
+        <div class="phase-head"><h3>體檢與修復：不給信心，給數字</h3><span class="span">2026-10</span></div>
+        <div class="ev-list">
+          <div class="ev-row"><span class="when">2026-10-04</span><span>雲端額度用完，整套系統停擺；執行紀錄看得到 10/04～10/09 約 6 天。本地化從「選項」變成「必須」。</span></div>
+          <div class="ev-row"><span class="when">2026-10-12</span><span>背景整理工作改用本機 27B 模型。</span></div>
+          <div class="ev-row key"><span class="when">2026-10-13</span><span>改變做法：7～8 月一個一個修，修好又壞、不停重工，所以停下來先把整套系統畫成工程藍圖——讀程式碼，對照真實執行紀錄，看清楚哪裡壞了再動。</span></div>
+          <div class="ev-row key"><span class="when">2026-10-19</span><span>定下長期方向「換嘴不換人」，程式代撈記憶上線。</span></div>
+          <div class="ev-row key"><span class="when">2026-10-21</span><span>代理核心的藍圖 100%：214 個檔、76,415 行，登記 286 個問題，整理成 11 份修復方案。</span></div>
+          <div class="ev-row"><span class="when">2026-10-22</span><span>第一批、第二批各 20 項修復，先在沙盒副本裡驗證，再上線正式環境。</span></div>
+          <div class="ev-row"><span class="when">2026-10-22</span><span>試換說話的模型，兩小時內換回；A/B 找出主因是上下文（見附錄 4）。</span></div>
+          <div class="ev-row"><span class="when">2026-10-22～23</span><span>第三、第四階段（到 10/23 早上）：正式環境再更新 4 次，每次先過沙盒整輪（最近一次 53／53 輪、0 錯）。修復帳本累計 122 項；驗收分類改成五類：確定好了、觀察期、部分好了、沒過、還沒碰。</span></div>
+          <div class="ev-row key"><span class="when">2026-10-23</span><span>世界模擬引擎的藍圖也畫到 100%：31,812 行，登記 85 條問題；當初的設計說法照實改寫（見附錄 3）。</span></div>
+          <div class="ev-row key"><span class="when">2026-10-23 晚</span><span>第四階段收尾：17 個修改包先各自在測試副本驗過，合併後閉環檢查紅燈 0，21:42 第 12 次更新正式環境，更新前留還原快照。修復帳本累計 192 項；問題總表 430 條（代理核心 337、世界模擬 93）。</span></div>
+          <div class="ev-row"><span class="when">2026-10-23 晚</span><span>問題集改由程式從問題總表＋修復帳本自動算出、不手改：可直接改 139 條、改前要先評估對 agent 的影響 14 條、等決策 9 條。</span></div>
+          <div class="ev-row"><span class="when">2026-10-23 晚</span><span>修復流程改成「派工單 → 並行施工 → 獨立驗收」：一包 4 項，3 個施工代理與 1 個驗收代理並行；交件只收派工單列的檔案，多動的不收。下一包（28 條死碼）派工單先寫好，等這包併入才開。</span></div>
+          <div class="ev-row"><span class="when">2026-10-23 晚</span><span>整套系統重開：停機前先逐一通知 9 個服務存檔，9 個都回報完成才關；重開後逐一驗證 8 個 agent 的記憶連續性，8／8 通過。</span></div>
+          <div class="ev-row"><span class="when">2026-10-23 晚</span><span>拿掉需求模型裡一個「每回合無條件加值」的驅動項，改成只隨時間與事件變化；8 個 agent 自我檢查一致接受。</span></div>
+        </div>
+      </article>
+
+      <article class="phase">
+        <div class="phase-head"><h3>下一步：全部搬回本機</h3><span class="span">2027 初</span></div>
+        <div class="ev-list">
+          <div class="ev-row"><span class="when">2027 初</span><span>新的模型伺服器到貨。核心不搬，留在主工作站；只換說話的那一層：大模型在新機器上跑，透過 API 打回來。換之前過兩把尺（像不像本人的基準考卷、長提示詞的首字延遲），過了才切；舊的嘴留著當退路。</span></div>
+        </div>
+      </article>
+
+    </div>
+    </details>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-details">
+    <header>
+      <span class="label">附錄 6 · Details</span>
+      <h2>工程細節（點開看）</h2>
+    </header>
+    <div class="expand-bar"><button type="button" id="expandAll" class="btn">全部展開</button><span class="caption">每一段都可以單獨點開；你打開過的段落，下次回來會保持打開。</span></div>
+    <div class="deep">
+
+      <details>
+        <summary><span class="no">A</span><span class="t">設計原則<small>定規則和限制，不寫死結果</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <div class="principles">
+            <div class="principle"><span class="n">01</span><div><b>定規則，不寫死結果</b><span class="d">系統只定互動規則和限制條件，角色怎麼反應由規則和經驗產生，不預先寫劇本。</span></div></div>
+            <div class="principle"><span class="n">02</span><div><b>角色從空白開始</b><span class="d">個性從累積的經驗長出來，不是一開始寫死在設定檔裡。</span></div></div>
+            <div class="principle"><span class="n">03</span><div><b>記錄過程，不只記結果</b><span class="d">每個事件都記下前因和後果，事後查得到「為什麼會這樣」。</span></div></div>
+            <div class="principle"><span class="n">04</span><div><b>每個功能都有成本</b><span class="d">加功能之前，先算它要花的時間、運算和維護成本。</span></div></div>
+            <div class="principle"><span class="n">05</span><div><b>資料要真</b><span class="d">數字要來自實際運行紀錄，不用估的。</span></div></div>
+          </div>
+          <p>後來從實際遇到的問題再補兩條：</p>
+          <ul>
+            <li><b>要保證的事放在程式裡，不寫在提示詞裡拜託模型。</b>判斷和執行都在程式，模型只拿結果。</li>
+            <li><b>角色的身分不綁在模型上。</b>記憶、狀態、模型三層分開，換模型不會換掉角色。</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="no">B</span><span class="t">記憶怎麼保住<small>三層記憶，加一道護核閘門</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <ul>
+            <li><b>Core（核心）</b>：名字、身分這種不能被改掉的東西，只存一份。</li>
+            <li><b>CoreGuard（護核）</b>：任何要動到核心的寫入都要過閘門，結果只有允許、拒絕、降級三種，每次都留紀錄，可以回放、可以稽核。</li>
+            <li><b>Tree（世界樹層）</b>：日常的經驗、關係、事件，可以長、可以整理。</li>
+          </ul>
+          <p>因果之書推論的順序是固定的：</p>
+          <div class="chain">
+            <span class="step">意圖</span><span class="to">→</span><span class="step">關係</span><span class="to">→</span><span class="step">情緒</span><span class="to">→</span><span class="step">事件</span><span class="to">→</span><span class="step">後果</span>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="no">C</span><span class="t">核心裡的八大塊<small>214 個檔、76,415 行</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <p>每一塊都可以再點開，看主要的模組檔和行數（Python，不含測試與封存；行數為 2026-10-23 的程式碼，標題的 214 檔、76,415 行是 2026-10-21 藍圖範圍）。</p>
+          <div class="mods">
+
+            <details class="mod">
+              <summary><span class="k">1</span><b>記憶層</b><span class="sub">寫入 → 儲存 → 向量索引 → 知識圖譜 → 檢索 → 注入 → 衰減與整理</span></summary>
+              <div class="modlist">
+                <code>memory_core.py</code><span class="ln">1,647</span><span>多路檢索：向量相似度＋MMR 去重＋時間衰減＋情緒共鳴加權</span>
+                <code>memorybox_v2.py</code><span class="ln">1,524</span><span>記憶盒讀寫與分層</span>
+                <code>graph_extraction_utils.py</code><span class="ln">1,503</span><span>從對話抽取三元組進知識圖譜</span>
+                <code>decay_manager.py</code><span class="ln">997</span><span>記憶衰減</span>
+                <code>knowledge_graph.py</code><span class="ln">756</span><span>知識圖譜查詢</span>
+                <code>embedding_engine.py</code><span class="ln">617</span><span>向量化客戶端（呼叫共用嵌入服務）</span>
+                <code>memory_index.py</code><span class="ln">599</span><span>SQLite 向量索引</span>
+                <code>memory_optimizer_v2.py</code><span class="ln">489</span><span>記憶整理與壓縮</span>
+                <code>association_engine.py</code><span class="ln">432</span><span>非線性聯想</span>
+                <code>working_memory.py</code><span class="ln">362</span><span>工作記憶</span>
+                <code>soul_memory_db.py</code><span class="ln">253</span><span>SQLite 存取層</span>
+                <code>sleep_cycle.py</code><span class="ln">185</span><span>離線整理週期</span>
+              </div>
+              <details class="code"><summary>程式碼 · memory_core.py（混合評分＋同義去重）</summary><pre class="log">            # 合併分數
+            if mode == "temporal":
+                final_score = base_score * temporal_score
+            elif mode == "semantic":
+                final_score = base_score * semantic_score
+            else: # hybrid
+                combined = (self.temporal_weight * temporal_score) + (self.semantic_weight * semantic_score)
+                final_score = base_score * combined
+            final_score += emotion_bonus
+...
+        # 判準用**覆蓋率**不用 Jaccard：短句被長句包含正是本案主形
+        # 太像的不刪，只是往後排——候選不足時仍補得滿，只調結構不犧牲數量。
+        if _env_flag("SOUL_RECALL_MMR", True) and len(scored_memories) &gt; limit:
+            _sim_th = _env_float("SOUL_RECALL_MMR_SIM", 0.7)
+...
+                _hit = False
+                for pg in _seen:
+                    _den = min(len(g), len(pg))
+                    if _den and len(g &amp; pg) / _den &gt;= _sim_th:
+                        _hit = True
+                        break
+                if _hit:
+                    _dup.append(m)
+                else:
+                    _keep.append(m)
+                    _seen.append(g)
+            scored_memories = _keep + _dup</pre></details>
+            </details>
+
+            <details class="mod">
+              <summary><span class="k">2</span><b>提示詞組裝</b><span class="sub">身分、狀態、記憶、對話線組成每一輪的上下文</span></summary>
+              <div class="modlist">
+                <code>context_assembler.py</code><span class="ln">997</span><span>組 system prompt：記憶目錄、長度預算、各區塊順序</span>
+                <code>soul_builder.py</code><span class="ln">939</span><span>從設定檔建構每個 agent</span>
+                <code>stateboard.py</code><span class="ln">641</span><span>現況板：使用者當下狀態，本機 27B 背景更新、只准引用原句</span>
+                <code>persona_anchor.py</code><span class="ln">504</span><span>身分錨點</span>
+                <code>dialogue_thread.py</code><span class="ln">312</span><span>SQLite 對話線，舊句補時間戳、久沒說話插間隔線</span>
+              </div>
+              <details class="code"><summary>程式碼 · soul_core_runtime.py（時間錨與間隔線）</summary><pre class="log">    @staticmethod
+    def _gap_marker_text(gap_seconds: float) -&gt; str:
+        """間隔線文字，視窗內與當下這句共用同一個格式。"""
+        _gap = int(gap_seconds)
+        _h, _mn = _gap // 3600, (_gap % 3600) // 60
+        _gap_txt = (f"{_h} 小時 {_mn} 分" if _h else f"{_mn} 分鐘")
+        return f"──（中間隔了 {_gap_txt}）──"
+...
+            _since_dlg = now_s - float(prev_dialogue_ts)
+            _lane_last_tag = _lane_tags.get(_lane_key)
+            prefix = ""
+            if _since_dlg &gt;= gap_marker_min * 60:
+                prefix += self._gap_marker_text(_since_dlg) + "\n"
+            if (_since_dlg &gt;= gap_min * 60
+                    or _lane_last_tag is None or (now_s - _lane_last_tag) &gt;= max_silence * 60):
+                _lane_tags[_lane_key] = now_s
+                self._last_time_tag_ts = now_s
+                prefix += f"{_stamp} "
+            return prefix + text if prefix else text</pre></details>
+              <p class="caption mod-note">密集對話不逐句標時間；隔 10 分鐘以上才標，隔 30 分鐘以上在前面插一條間隔線。逐句標時間反而會讓模型整晚一直在意時間。</p>
+            </details>
+
+            <details class="mod">
+              <summary><span class="k">3</span><b>閘道與服務間通訊</b><span class="sub">對外 API、多 agent 路由、MCP、告警</span></summary>
+              <div class="modlist">
+                <code>family_orchestrator.py</code><span class="ln">2,995</span><span>多 agent 路由總機，需要授權的動作先攔下（human-in-the-loop）</span>
+                <code>soulcore_http_server.py</code><span class="ln">2,040</span><span>HTTP 閘道 API</span>
+                <code>soul_ws_server.py</code><span class="ln">861</span><span>每個 agent 的 WebSocket 入口</span>
+                <code>soulcore_memory_bridge.py</code><span class="ln">800</span><span>跨 agent 記憶橋</span>
+                <code>soul_ws_client.py</code><span class="ln">523</span><span>WebSocket 客戶端</span>
+                <code>soulcore_memory_mcp.py</code><span class="ln">405</span><span>MCP 伺服器，讓外部工具讀寫記憶</span>
+                <code>semantic_guard.py</code><span class="ln">237</span><span>語意崩潰偵測</span>
+                <code>alarm_manager.py</code><span class="ln">212</span><span>告警中心，異常配發代碼</span>
+              </div>
+              <details class="code"><summary>程式碼 · alarm_manager.py（告警去重與慢性標記）</summary><pre class="log">def trigger_alarm(error_code: str, module: str, description: str, severity: str = "ERROR",
+                  persona_facing: bool = False, fingerprint: Optional[str] = None):
+...
+        # [12c] upsert：同 (error_code, module, fingerprint) 的 ACTIVE 警報只更新，不新增重複條目
+        for alarm in alarms:
+            if (alarm.get("status") == "ACTIVE"
+                    and alarm.get("error_code") == error_code
+                    and alarm.get("module") == module
+                    and str(alarm.get("fingerprint") or "") == fp):
+                alarm.setdefault("first_seen", alarm.get("timestamp", now_iso))
+                alarm["timestamp"] = now_iso
+                alarm["description"] = description
+                alarm["severity"] = severity
+                alarm["count"] = int(alarm.get("count", 1)) + 1
+                alarm["chronic"] = alarm["count"] &gt;= CHRONIC_COUNT_THRESHOLD
+...
+                logger.error(f"🚨 [ALARM RECUR ×{alarm['count']}] {error_code} ({severity}) in {module}: {description}")
+                return</pre></details>
+              <p class="caption mod-note"><code>persona_facing</code> 預設 False：機器的故障不會被送進 agent 的「身體感覺」。曾經有一次監控斷線被當成 agent 自己不舒服，它就自己編了一個病因。忘記標記＝不推送＝安全。</p>
+            </details>
+
+            <details class="mod">
+              <summary><span class="k">4</span><b>情緒、驅動與人格狀態</b><span class="sub">每一輪更新、寫回核心的狀態參數</span></summary>
+              <div class="modlist">
+                <code>emotion_core.py</code><span class="ln">1,408</span><span>情緒分析與情緒向量</span>
+                <code>persona_state.py</code><span class="ln">851</span><span>人格特質參數與身分指紋</span>
+                <code>mbti_configs.py</code><span class="ln">761</span><span>性格基線設定</span>
+                <code>desire_core.py</code><span class="ln">724</span><span>驅動值（六種）的衰減與輸入衝擊</span>
+                <code>identity_core.py</code><span class="ln">676</span><span>身分核心</span>
+                <code>self_regulation.py</code><span class="ln">593</span><span>自我調節</span>
+                <code>seven_sins_virtues.py</code><span class="ln">550</span><span>行為傾向偏置</span>
+                <code>valve_v4.py</code><span class="ln">409</span><span>情緒閥：輸入強度的調節閘</span>
+                <code>drive_types.py</code><span class="ln">382</span><span>驅動型別定義</span>
+                <code>emotion_vectors.py</code><span class="ln">196</span><span>情緒向量運算</span>
+              </div>
+              <details class="code"><summary>程式碼 · desire_core.py（驅動值隨時間成長）</summary><pre class="log">            _cap = float(os.getenv("SOUL_DESIRE_MAX_GROW_HOURS", "8"))
+            hours_passed = min(_elapsed_h, _cap)
+
+        # 1. 提取 DecayRate (第 2 欄)
+        decay_rates = self.desire_matrix[:, 2]
+
+        # 2. 生成量子噪聲 (矩陣式生成)
+        noise = np.random.uniform(-0.01, 0.02, size=len(self.desire_types))
+
+        # 3. 更新 Intensity (第 0 欄)
+        deltas = (decay_rates * hours_passed) + noise
+        _floor = float(os.getenv("SOUL_DESIRE_FLOOR", "0.02"))
+        self.desire_matrix[:, 0] = np.clip(self.desire_matrix[:, 0] + deltas, _floor, 1.0)</pre></details>
+              <p class="caption mod-note">成長最多算 8 小時、有下限 0.02：曾經因為滿足時扣固定額度、下限是 0，一個白天就把驅動值磨到歸零。後來滿足改成乘法衰減，數學上永遠不會觸零。</p>
+            </details>
+
+            <details class="mod">
+              <summary><span class="k">5</span><b>因果與意圖</b><span class="sub">意圖 → 事件 → 因果連結 → 預測 → 事後驗證</span></summary>
+              <div class="modlist">
+                <code>intent_recognizer.py</code><span class="ln">808</span><span>意圖辨識</span>
+                <code>causal_core.py</code><span class="ln">483</span><span>因果事件與連結</span>
+                <code>causal_prediction_validator.py</code><span class="ln">235</span><span>每輪先記預測，回覆後驗證準確度並回饋權重</span>
+                <code>high_resolution_intent_reranker.py</code><span class="ln">226</span><span>意圖重排</span>
+                <code>event_bus.py</code><span class="ln">191</span><span>事件匯流排</span>
+                <code>event_orchestrator.py</code><span class="ln">97</span><span>事件調度</span>
+              </div>
+              <details class="code"><summary>程式碼 · causal_prediction_validator.py（預測驗證）</summary><pre class="log">        # 計算預測準確度
+        predicted_emotion = prediction['predicted_emotion']
+        accuracy = self._calculate_emotion_similarity(predicted_emotion, actual_emotion)
+...
+        # 更新統計數據
+        self.accuracy_stats['total_predictions'] += 1
+        if accuracy &gt; 0.7:  # 準確度閾值
+            self.accuracy_stats['correct_predictions'] += 1
+
+        self.accuracy_stats['accuracy_rate'] = (
+            self.accuracy_stats['correct_predictions'] /
+            self.accuracy_stats['total_predictions']
+        )</pre></details>
+              <p class="caption mod-note">每輪先記預測、回覆後驗證、再回饋權重。</p>
+            </details>
+
+            <details class="mod">
+              <summary><span class="k">6</span><b>智慧層</b><span class="sub">把經驗蒸餾成原則，最大的一塊（13,556 行）</span></summary>
+              <div class="modlist">
+                <code>wisdom_system.py</code><span class="ln">1,126</span><span>主協調器</span>
+                <code>wisdom_crystallizer.py</code><span class="ln">1,036</span><span>經驗結晶成原則</span>
+                <code>adaptive_learning.py</code><span class="ln">939</span><span>從互動學習洞察</span>
+                <code>growth_tracker.py</code><span class="ln">846</span><span>成長追蹤</span>
+                <code>metrics.py</code><span class="ln">837</span><span>智慧指標</span>
+                <code>experience_distiller.py</code><span class="ln">738</span><span>經驗蒸餾</span>
+                <code>persistence.py</code><span class="ln">679</span><span>存檔（networkx 圖序列化）</span>
+                <code>intuition_engine.py</code><span class="ln">649</span><span>直覺引擎</span>
+                <code>analogical_reasoner.py</code><span class="ln">574</span><span>類比推理</span>
+                <code>feedback_integrator.py</code><span class="ln">572</span><span>回饋整合</span>
+                <code>wisdom_adapter.py</code><span class="ln">535</span><span>接回主流程的轉接層</span>
+                <code>self_corrector.py</code><span class="ln">474</span><span>自我修正</span>
+                <code>concept_layer.py</code><span class="ln">471</span><span>概念層（networkx 概念圖）</span>
+                <code>reflection_engine.py</code><span class="ln">421</span><span>反思引擎</span>
+              </div>
+              <details class="code"><summary>程式碼 · wisdom_crystallizer.py（經驗累積到門檻才結晶）</summary><pre class="log">    def __init__(self,
+                 wisdom_crystallizer: WisdomCrystallizer,
+                 crystallization_threshold: int = 3,
+                 max_cluster_age_days: int = 30):
+...
+            # Add experience to cluster
+            self.pending_experiences[cluster_key].append(experience)
+...
+            # Check if ready for crystallization
+            if len(self.pending_experiences[cluster_key]) &gt;= self.crystallization_threshold:
+                return self._crystallize_cluster(cluster_key)
+
+            return None</pre></details>
+              <p class="caption mod-note">同一類經驗累積到門檻才結晶成原則。</p>
+            </details>
+
+            <details class="mod">
+              <summary><span class="k">7</span><b>執行核心與生成</b><span class="sub">一輪對話的主迴圈、模型呼叫、生成後檢查</span></summary>
+              <div class="modlist">
+                <code>soul_core_runtime.py</code><span class="ln">8,898</span><span>主執行迴圈：前置檢查、核心迴圈、組提示詞、生成、收尾</span>
+                <code>brain_executor.py</code><span class="ln">2,803</span><span>生成迴圈、工具呼叫、代撈記憶、重試</span>
+                <code>ollama_client.py</code><span class="ln">934</span><span>模型客戶端，每次呼叫記 token 數</span>
+                <code>guard_core.py</code><span class="ln">667</span><span>守衛</span>
+                <code>response_quality_evaluator.py</code><span class="ln">369</span><span>回覆品質評估</span>
+                <code>evolution_auditor.py</code><span class="ln">316</span><span>人格漂移稽核</span>
+                <code>introspection.py</code><span class="ln">309</span><span>自省</span>
+                <code>log_sentinel.py</code><span class="ln">231</span><span>日誌哨兵</span>
+                <code>expression_gate.py</code><span class="ln">243</span><span>表達閘：不一致就改寫或重生一次</span>
+              </div>
+              <details class="code"><summary>程式碼 · brain_executor.py（程式代撈記憶，2026-10-19 版）</summary><pre class="log">        # [10/19 程式代撈記憶·藍圖第九節] router 判 use_memory 時，開口前由程式替她回想，
+        # 用她第一人稱的心裡話、以 user 結尾放進這一輪（只活在 current_messages，不入對話線與記憶盒）。
+        if (retrieval_route or {}).get("use_memory") and self._memory_prefetch_enabled():
+            try:
+                _mode, _inner = self._prefetch_memory_material(current_messages)
+            except Exception as exc:
+                logger.warning(f"⚠️ [MemoryPrefetch] 代撈失敗，退回原行為: {type(exc).__name__}: {str(exc)[:80]}")
+                _mode, _inner = "skip", ""
+            if _mode in ("hit", "nohit") and _inner:
+                memory_prefetched = True
+...
+                current_messages.append({"role": "assistant", "content": "（我先在心裡翻一下記憶。）"})
+                current_messages.append({"role": "user", "content": f"（{_inner}……）"})  # 心裡話的措辭略</pre></details>
+              <p class="caption mod-note">以前「去查記憶」是交給模型自己決定要不要呼叫工具，常被跳過。現在由程式先撈好，用第一人稱的心裡話放進這一輪。代撈失敗就退回原行為，不會讓對話卡住。後來又發現新問題：這段「心裡話」有時會被角色當成自己的話說出口（2026-10-22 登記）。現在加了防呆；讀信的那一輪改成只放角色自己說過的話、翻不到就什麼都不放，重放 200 多封測試信，「找不到」的句子從約 50 次降到 0。</p>
+            </details>
+
+            <details class="mod">
+              <summary><span class="k">8</span><b>NPU 與感知</b><span class="sub">共用嵌入服務、NPU 管理、視覺</span></summary>
+              <div class="modlist">
+                <code>embedding_server.py</code><span class="ln">618</span><span>共用嵌入服務：bge-m3 跑 NPU，失敗退回 CPU，退回次數露在健康檢查</span>
+                <code>performance_monitor.py</code><span class="ln">509</span><span>NPU 效能監控</span>
+                <code>perception_core.py</code><span class="ln">445</span><span>感知核心</span>
+                <code>fallback_manager.py</code><span class="ln">384</span><span>NPU 退路管理</span>
+                <code>registry.py</code><span class="ln">187</span><span>模組登記表</span>
+                <code>vision_service.py</code><span class="ln">188</span><span>視覺服務</span>
+              </div>
+              <details class="code"><summary>程式碼 · embedding_server.py（NPU 不靜默截斷）</summary><pre class="log">    def _npu_encode_single(self, text: str) -&gt; np.ndarray:
+        # ★ 2026-08-15 拆地雷：超過 NPU 的靜態 shape 就退回 CPU，不靜默截斷
+        #   原本這裡是 truncation=True, max_length=128 —— 超過的部分直接丟掉，
+        n_tok = self._npu_too_long(text)
+        if n_tok &gt; NPU_SEQ_LEN:
+            self._npu_fallback_count += 1
+...
+            return self._ensure_bge_cpu().encode(
+                text, show_progress_bar=False, convert_to_numpy=True)
+
+        inputs = self._bge_tokenizer(
+            [text], padding="max_length", truncation=True,
+            max_length=NPU_SEQ_LEN, return_tensors="np"
+        )</pre></details>
+              <p class="caption mod-note">原本長度寫死 128，超過的字直接丟掉，而且沒有任何一行紀錄。改成 1024（涵蓋實際觀測到的 100% 長度），還是超過就退回 CPU，退回次數露在健康檢查上。原本這塊還有一支 NPU 批次管理（424 行），藍圖查出它沒有被任何地方用到，2026-10-23 清死碼時移除。</p>
+            </details>
+
+          </div>
+          <p>這裡列的是程式碼裡有的模組。每一顆有沒有真的在做它說的事，是另外量的，結果寫在 E「我怎麼替它做體檢」。藍圖的挖掘順序照「壞了影響多大」排：記憶層第一，外圍最後。</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="no">D</span><span class="t">一輪對話怎麼跑<small>中位數 19.3 秒（1,556 輪），真正生成回覆只佔 15%</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <div class="chain">
+            <span class="step">收到訊息</span><span class="to">→</span><span class="step">身分與情緒檢查</span><span class="to">→</span><span class="step">撈記憶、聯想</span><span class="to">→</span><span class="step">組提示詞</span><span class="to">→</span><span class="step">生成回覆</span><span class="to">→</span><span class="step">品質與一致性檢查</span><span class="to">→</span><span class="step">寫回記憶</span>
+          </div>
+          <p class="caption">下面這條是其中一輪（18.90 秒）的實際分配；全部 1,556 輪的中位數是 19.3 秒，前置準備佔 56%、生成佔 15%。</p>
+          <div class="bar" role="img" aria-label="一輪 18.90 秒的時間分配：前置 11.06、記憶蒸餾 3.36、聯想 1.58、工具 1.22、生成 1.63、收尾 0.05 秒">
+            <div class="seg-pre" style="width:58.5%"></div>
+            <div class="seg-distill" style="width:17.8%"></div>
+            <div class="seg-assoc" style="width:8.4%"></div>
+            <div class="seg-tools" style="width:6.5%"></div>
+            <div class="seg-gen" style="width:8.6%"></div>
+            <div class="seg-post" style="width:0.3%"></div>
+          </div>
+          <div class="legend">
+            <span><i class="seg-pre"></i>前置檢查 11.06s</span>
+            <span><i class="seg-distill"></i>記憶蒸餾 3.36s</span>
+            <span><i class="seg-assoc"></i>聯想 1.58s</span>
+            <span><i class="seg-tools"></i>工具 1.22s</span>
+            <span><i class="seg-gen"></i>生成 1.63s</span>
+            <span><i class="seg-post"></i>收尾 0.05s</span>
+          </div>
+          <p>從執行紀錄數到，一輪總共呼叫 10 次模型。慢的不是生成，是生成之前的準備。這個發現決定了優化的方向，也決定了新機器要看「讀提示詞的速度」，不只看吐字速度。</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="no">E</span><span class="t">我怎麼替它做體檢<small>214 個檔逐一看過，找出問題、分級、排先後</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <div class="stats">
+            <div class="stat"><b>76,415</b><span>行代理核心程式碼，覆蓋率 100%（世界模擬引擎 31,812 行另外畫，2026-10-23 完成）</span></div>
+            <div class="stat"><b>214</b><span>個檔案逐一對照</span></div>
+            <div class="stat"><b>340</b><span>個問題登記在案（10-21 第一版之後陸續新增；世界模擬引擎另 93 條）</span></div>
+          </div>
+          <p>每一顆模組都要回答五題：它說它在做什麼、誰呼叫它、吃什麼吐什麼、它真的有在做嗎（要有一個量得到的數字）、判定。沒看過的寫「沒看過」，不推測。</p>
+          <p>找出來的問題分三級排先後，再按根源分成 21 群、整理成修復方案，分批處理：</p>
+          <div class="brief">
+            <div class="brief-row"><span class="bk">先修</span><span>正在影響使用的 <b class="num">101</b> 個</span></div>
+            <div class="brief-row"><span class="bk">第二</span><span>條件到了才會發作的 <b class="num">97</b> 個</span></div>
+            <div class="brief-row"><span class="bk">最後清</span><span>沒在用、或沒有實際作用的程式碼 <b class="num">124</b> 個</span></div>
+          </div>
+          <p>最常見的問題都長同一個樣子：功能看起來在、紀錄也在印，可是沒人量過它有沒有真的在做事。所以我要求每一顆模組都要有一個量得到的數字。</p>
+          <p><b>進度（截至 2026-10-24 21:27，照修復帳本與問題總表）</b></p>
+          <div class="stats">
+            <div class="stat"><b>227</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
+            <div class="stat"><b>13</b><span>次更新到正式環境，每次先在測試副本驗過、都留還原快照</span></div>
+            <div class="stat"><b>52</b><span>個問題確定好了（另 105 個觀察期、39 個部分好了）</span></div>
+          </div>
+          <p>「觀察期」是修改已經上線、程式確定有作用，正在量用起來有沒有比較好；4 個量了沒過，繼續修；還沒碰的 140 個多數是潛伏問題和死碼。因為每一項都要求分層驗收，這些才分得出來，不會全部被算成「修好了」。</p>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="no">F</span><span class="t">怎麼知道審查本身可不可靠<small>故意埋錯，看審查抓不抓得到</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <p>用本機模型做盲審之前，先在程式碼裡故意埋錯（內部叫「金絲雀」；業界的做法叫 error seeding／mutation testing），看它抓不抓得到，也看它會不會把對的判成錯的。方法是現成的，我們的用法是拿它來決定「AI 審查員的話能不能信」。</p>
+          <ul>
+            <li>兩輪盲審，驗證題 <span class="num">41／41</span> 全對。</li>
+            <li>金絲雀兩份共埋 <span class="num">8</span> 個錯，抓到 <span class="num">6</span> 個；第二份 <span class="num">4／4</span> 全抓、對的沒有誤判。</li>
+            <li>審查說的每一條，都再回程式碼逐條核對，分成證實、部分證實、它看錯三類。</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="no">G</span><span class="t">改核心的固定流程<small>藍圖 → 沙盒 → 改碼 → 看紀錄驗證 → 藍圖升版</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <ol>
+            <li><b>先改藍圖</b>，寫清楚要改什麼、為什麼。</li>
+            <li><b>在沙盒副本上試</b>：整套系統複製一份，用守門程式確認測試時正式環境寫入是 0 筆。</li>
+            <li><b>改程式碼</b>，一次改一項。</li>
+            <li><b>看執行紀錄驗證</b>：每一項都跑一整輪，0 個錯誤才算過。</li>
+            <li><b>回寫藍圖</b>：跑閉環檢查，紅燈 0 才准覆蓋到正式環境。</li>
+          </ol>
+          <p>2026-10-22 再補一條：每一項修復動手前先寫三欄：<b>最終目標</b>（用使用者感受得到的結果寫一句）、<b>量什麼</b>、<b>過關線多少</b>。驗收時分兩層記：程式有照寫的跑，跟目標有沒有達到。只有前一層的，標成「只確認程式有在跑」。2026-10-23 再細分成五類：確定好了、觀察期、部分好了、沒過、還沒碰。</p>
+          <p>我為什麼加這條：第一批修復全部通過機制檢查，我問「每一項的最終目標達到了沒」，當時答不出來。拿記憶考卷一量才看得到差距，這份考卷之後就成了每一批上線前都要過的關。考卷目前的數字寫在附錄 14。</p>
+          <p><b>修復帳本原件（三筆，去掉名字，其餘照原樣）</b></p>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>最終目標</th><th>量什麼</th><th>結果</th><th>依據</th></tr></thead>
+              <tbody>
+                <tr><td>使用者說情緒比較重的話時，角色不用先白等 7 秒才開口</td><td>那一輪的前置秒數</td><td>過</td><td>白等 8,832 → 0 毫秒；前置 18.4 → 10.8 秒</td></tr>
+                <tr><td>記憶上標的「誰說的」，跟真正說話的人一致</td><td>標籤對原始資料，過關線 100%</td><td>過</td><td>離線比對 2,582 條，100%；上線後的紀錄也帶著標籤</td></tr>
+                <tr><td>某個角色不再越聊越忘，想得起對話視窗以外的事</td><td>記憶考卷：正確答案有沒有排進前 3 名</td><td>沒過</td><td>機制面過了（視窗外的記憶都有被查到、歸零 0 次），但四題目標題只有 1 題的正解進前 3 名，所以標「沒過」，繼續修</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>每天下午 4 點另有一支只讀的後果體檢，比對前一天的基準，只有新出現或變嚴重的問題才往上報。會呼叫雲端模型的整輪測試，跑前跑後各記一次帳戶餘額，算出每一輪的實際成本。</p>
+        </div>
+      </details>
+
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-methods">
+    <header>
+      <span class="label">附錄 7 · Methods</span>
+      <h2>自己長出來的工法</h2>
+    </header>
+    <p>這些做法不是從書上抄的，是做這套系統的過程裡一條一條定下來的。幾條業界本來就有名字（故意埋錯＝error seeding／mutation testing、一次只動一項＝控制變因），我是先撞到問題才用上，再照自己的情況調整。每一條寫做法，和它擋住的問題。</p>
+    <div class="methods">
+      <article class="method">
+        <h3>故障型錄</h3>
+        <p>把出過的故障整理成類型，每一種都要答三件事：怎麼認出它、怎麼掃到它、怎麼修它。新的事故先查有沒有同型的；掃法寫得出程式的，就交給程式。</p>
+        <p class="whyline">擋住的問題：同一型故障換個地方再出現，每次都當新問題從頭查。</p>
+      </article>
+      <article class="method">
+        <h3>原始需求標竿表</h3>
+        <p>把 2024 年當初定規則時的原話，連同時間戳，當成量尺。拿現在的系統去比，差多少就是偏移，偏移就是待辦，原話就是驗收標準。</p>
+        <p class="whyline">擋住的問題：做了兩年，忘了當初為什麼這樣設計；現在的問題幾乎每一個都對得回一條當初的設計。</p>
+      </article>
+      <article class="method">
+        <h3>三種標記，不准推測</h3>
+        <p>每一個判斷都要標：程式碼和執行紀錄都看到、只在程式碼看到、推測待驗。沒看過的就寫「沒看過」。</p>
+        <p class="whyline">擋住的問題：猜的跟確定的混在一起，後面的決定建在猜的上面。</p>
+      </article>
+      <article class="method">
+        <h3>互不引用的交叉驗證</h3>
+        <p>重要的判斷走兩條彼此獨立的路：我讀程式碼，加上本機模型盲審（審查者先用埋好的錯考過）。兩邊不一致就交給人判。</p>
+        <p class="whyline">擋住的問題：來源相近的兩個說法互相同意，被當成驗證。</p>
+      </article>
+      <article class="method">
+        <h3>沙盒守門</h3>
+        <p>整套系統複製一份副本來測，守門程式保證測試期間正式環境寫入 0 筆。建沙盒時先放 13 隻金絲雀確認隔離有效，13 隻全部抓到才開始用。</p>
+        <p class="whyline">擋住的問題：測試資料混進正式資料，之後分不清哪些是真的。</p>
+      </article>
+      <article class="method">
+        <h3>已知病清單</h3>
+        <p>每日體檢只把「新的」和「變嚴重的」排在最上面。已知的登記在清單裡；修好就拿掉，再犯會自動浮回報告頂端。</p>
+        <p class="whyline">擋住的問題：每天都紅的燈被看習慣，新的那一盞混在裡面沒人看見。</p>
+      </article>
+      <article class="method">
+        <h3>一次只動一項</h3>
+        <p>比較兩個版本時，只改一個變因、同條件並排。量到的最大差異不一定是病因，要能單獨把那一項換回來、結果也跟著變，才算找到。</p>
+        <p class="whyline">擋住的問題：一次改三樣，好了也不知道是哪一樣修好的。</p>
+      </article>
+      <article class="method">
+        <h3>換模型之前先考試</h3>
+        <p>兩份考卷：一份看「像不像本人」，一份看「會不會抄別人的說話方式」。考過了、評估過影響，才換。</p>
+        <p class="whyline">擋住的問題：換掉的是說話那一層，使用者感受到的卻是這個角色變了。</p>
+      </article>
+      <article class="method">
+        <h3>新舊並行換嘴</h3>
+        <p>換說話的模型或推論引擎時，核心（記憶、身分、狀態）不動；新舊兩張嘴並行跑一段，用同一組尺比對（像不像本人的考卷、日常對話、長提示詞的首字延遲），過了才切。舊的嘴留著當退路。</p>
+        <p class="whyline">擋住的問題：一次切過去，壞了沒有退路，而且分不清是嘴的問題還是核心的問題。</p>
+      </article>
+      <article class="method">
+        <h3>自報狀態不算量測</h3>
+        <p>元件說自己「正常」「已校準」「已同步」，不當成量測結果，要另外量。開工第一步先核對基準（時間、版本、正式環境指到哪），不用推算的、不沿用上一次的。</p>
+        <p class="whyline">擋住的問題：一個元件宣稱已校準的同一分鐘，量出來是錯的。</p>
+      </article>
+      <article class="method">
+        <h3>交接檔</h3>
+        <p>工作分很多段、常換手。每次收工前寫交接檔：做到哪裡、還沒驗什麼、下一步是什麼；接手的先讀交接檔再動手。</p>
+        <p class="whyline">擋住的問題：換手之後沒人知道上次做到哪，重做一遍。</p>
+      </article>
+      <article class="method">
+        <h3>成本跟著測試一起量</h3>
+        <p>每次會呼叫雲端模型的整輪測試，跑前跑後各記一次帳戶餘額，換算成每一輪對話的實際成本。</p>
+        <p class="whyline">擋住的問題：本地化值不值得，用感覺在吵。</p>
+      </article>
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-ai">
+    <header>
+      <span class="label">附錄 8 · With AI</span>
+      <h2>我怎麼跟 AI 協作</h2>
+    </header>
+    <p>程式碼是 AI 寫的。我把 AI 當成一個開發團隊來帶：定規格、拆任務、排順序、驗收交回來的東西，最後決定上不上線。</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>工作</th><th>誰負責</th><th>我怎麼管</th></tr></thead>
+        <tbody>
+          <tr><td>方向與原則</td><td>我</td><td>寫成原則與藍圖；改核心之前，一定先改藍圖</td></tr>
+          <tr><td>規格與驗收標準</td><td>我</td><td>每一項寫最終目標、量什麼、過關線；結果分五類：確定好了、觀察期、部分好了、沒過、還沒碰</td></tr>
+          <tr><td>拆任務、排順序</td><td>我</td><td>主視窗只調度和驗收，可以平行的拆出去；照「壞了影響多大」排優先順序</td></tr>
+          <tr><td>寫程式、讀程式碼、畫藍圖</td><td>AI</td><td>要求分清「確定」和「推測」；先在整套副本上試，正式環境 0 寫入</td></tr>
+          <tr><td>審查</td><td>本機模型盲審＋AI 讀碼</td><td>審查者先用故意埋的錯考過；兩邊說法不一致時交給我判</td></tr>
+          <tr><td>上線決策</td><td>我</td><td>看數字決定開或關；有風險的功能預設關著，測試都過了才開</td></tr>
+          <tr><td>發現不對勁</td><td>我</td><td>數字都正常時的聽感和直覺，轉成之後掃得到的檢查項</td></tr>
+          <tr><td>跨視窗接續</td><td>AI 寫、我驗</td><td>每次收工寫交接檔，下一次先讀再動手</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-lessons">
+    <header>
+      <span class="label">附錄 9 · Lessons</span>
+      <h2>我判斷問題的規矩</h2>
+    </header>
+    <p>每一條都是我在大家說「沒問題」的時候找出問題之後定下來的，後來變成驗收時一定會問的題目。</p>
+    <div class="lessons">
+      <div class="lesson"><b>燈綠了，還要問走的是哪一條路。</b><span>從整套系統重開那次來：十二個服務埠全綠，我往下查，四個其實退回了慢速模式。紅燈會有人修，假綠燈沒人看，所以驗收不能只看燈。</span></div>
+      <div class="lesson"><b>「有在跑」要再問「有沒有做到」。</b><span>從第一批修復那次來：全部通過檢查，我問每一項的最終目標達到了沒，當時答不出來。之後每一項都分兩層驗收：程式有照寫的跑，跟目標有沒有達到。</span></div>
+      <div class="lesson"><b>尺要量到真正在意的那一層。</b><span>服務埠活著不代表服務正常，檔案存在不代表內容是對的。訂驗收標準時先問：這把尺量到的是外殼還是內容？</span></div>
+      <div class="lesson"><b>記憶的驗收要帶著歷史測。</b><span>空白的測試資料測不出「失去歷史」，所以測試資料一定要帶種子歷史。</span></div>
+      <div class="lesson"><b>昨天好、今天壞，先找改了什麼。</b><span>治標之前先比對變更，幾乎都能找到源頭。</span></div>
+      <div class="lesson"><b>下游好了，回頭確認上游。</b><span>症狀消失不等於病根修好，驗收要回到源頭再量一次。</span></div>
+      <div class="lesson"><b>要保證的事放進程式，不拜託模型。</b><span>「先去查記憶」寫在提示詞裡，雲端模型常常跳過；我決定改成程式先查好再交給模型，執行率 16／16。</span></div>
+    </div>
+
+    <h3 class="logs-title">真實紀錄片段</h3>
+    <p class="caption">去掉名字與內部路徑，幾個內部用語改成一般說法，數字照原樣。</p>
+    <pre class="log">⏱ [Turn] pre=11.06s distill=3.36s assoc=1.58s tools=1.22s gen=1.63s post=0.05s total=18.90s</pre>
+    <pre class="log"># 靈魂核心每日後果體檢 v0　2026-10-21 16:00
+範圍：10-20 16:00 ～ 10-21 16:00｜只讀 log／帳本／thread.db／告警，不叫模型。
+
+## ★ 要看的：新的／變嚴重的
+（沒有）
+
+## 已知病（登記在 known.json，沒變嚴重；11 盞）
+- 驅動值走模型備案（CDA 不可用）：第 31 天還在（2026-09-20 起）
+
+## 一、回合帳（節錄一位）
+| 回合 | 每輪模型呼叫（中位） | 主模型 token 中位／P90 | 每輪秒數 中位 total（pre） |
+| 2    | 3                    | 12997／13212         | 14.8（8.8）                |
+
+## 二、模組活動（全部合計）
+- 🟢 智慧層結晶：2
+- 🟢 知識圖譜休眠抽取：63
+- 🟢 因果驗證：2
+- 🟢 記憶寫入：4
+- 🔴 感官回饋：0</pre>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-machine">
+    <header>
+      <span class="label">附錄 10 · Machine</span>
+      <h2>跑在哪台機器上</h2>
+    </header>
+    <div class="arch">
+      <div class="node">
+        <span class="name">遠端存取</span>
+        <span class="spec">只允許 Tailscale VPN 網段 · 其餘封鎖</span>
+      </div>
+      <div class="arrow">▼</div>
+      <div class="host">
+        <span class="name">主工作站</span>
+        <span class="spec">Intel Core Ultra 9 285K · 64GB DDR5-6000 · ASUS PRIME Z890-P WIFI</span>
+        <div class="units">
+          <div class="node">
+            <span class="name">NPU</span>
+            <span class="spec">Intel AI Boost</span>
+            <span>文字嵌入服務。一份模型給所有服務共用，不各載一份。</span>
+          </div>
+          <div class="node">
+            <span class="name">CPU</span>
+            <span class="spec">閘道＋9 個常駐服務</span>
+            <span>有固定啟動順序，前一層健康檢查通過才起下一層。</span>
+          </div>
+          <div class="node">
+            <span class="name">GPU</span>
+            <span class="spec">RTX 4080 SUPER 16GB</span>
+            <span>影像／影片生成（ComfyUI）與本地模型推論。</span>
+          </div>
+        </div>
+      </div>
+      <div class="node">
+        <span class="name">雲端 GPU</span>
+        <span class="spec">RunPod · 按小時租用</span>
+        <span>16GB 放不下的大型影片生成，送到雲端 GPU 跑，不用為了偶爾的大工作買卡。</span>
+      </div>
+      <div class="arrow">▼ 每日 4:03 自動備份</div>
+      <div class="node">
+        <span class="name">外接碟備份 <span class="pill ok">運作中</span></span>
+        <span class="spec">整份資料＋資料庫快照保留 7 份 · 狀態檔非 OK 即回報</span>
+      </div>
+      <div class="node planned">
+        <span class="name">模型伺服器 <span class="pill plan">規劃中</span></span>
+        <span class="spec">Mac Studio M5 Ultra · 預計 2027 年初到貨 · Thunderbolt 5 直連主工作站</span>
+        <span>分工照記憶體大小：放不進 16GB 顯卡的大模型跑在這台，透過 API 提供給主工作站；4080 SUPER 留給本機 27B 的背景整理和影像生成。推論引擎到時一起換（候選到貨後實測比），換之前先過相容性：模型呼叫集中在一層，換引擎只動那一層、核心不動。核心不搬、留在主工作站（記憶庫、向量服務和索引都留在原處，向量不跨後端比對），這台只換說話的那一層；新舊並行，舊的嘴留著當退路。換過去之前要過兩把尺：「像不像本人」的基準考卷，和長提示詞的首字延遲。</span>
+      </div>
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-skills">
+    <header>
+      <span class="label">附錄 13 · Skills</span>
+      <h2>技能</h2>
+    </header>
+    <div class="skills">
+      <div class="skill">
+        <h3>產品與專案</h3>
+        <ul>
+          <li>需求 → 規格 → 驗收標準（每一項寫最終目標、量什麼、過關線）</li>
+          <li>依數據做上線決策：分批上線、有風險的功能預設關閉</li>
+          <li>供應商風險評估：雲端與本地的取捨、硬體採購標準</li>
+          <li>問題分級與排程：340 個問題分級、分群、分批修復</li>
+        </ul>
+      </div>
+      <div class="skill">
+        <h3>帶 AI 做開發</h3>
+        <ul>
+          <li>把需求拆成 AI 做得了、也驗得了的任務</li>
+          <li>多個 AI 工作視窗平行分工，主視窗調度與驗收</li>
+          <li>交接檔、藍圖、檢查清單，讓長期專案換手不斷線</li>
+        </ul>
+      </div>
+      <div class="skill">
+        <h3>LLM 應用技術</h3>
+        <ul>
+          <li>RAG、Embedding／向量檢索、Hybrid Search、Rerank、MMR</li>
+          <li>Knowledge Graph、Context／Prompt Engineering</li>
+          <li>Multi-Agent、MCP、Ollama</li>
+          <li>每一項在系統裡怎麼用，見<a href="#a-summary">附錄 1 業界名詞對照</a></li>
+        </ul>
+      </div>
+      <div class="skill">
+        <h3>系統與硬體</h3>
+        <ul>
+          <li>工作站選型、組裝與換卡</li>
+          <li>Windows 系統維運、排程與服務啟動流程</li>
+          <li>NPU／GPU 推論服務部署</li>
+        </ul>
+      </div>
+      <div class="skill">
+        <h3>架構與驗證</h3>
+        <ul>
+          <li>多角色長期記憶系統的架構原則與分層設計</li>
+          <li>工程藍圖：讀程式碼對照執行紀錄、問題分級</li>
+          <li>沙盒驗證、埋錯測審查、每日體檢</li>
+        </ul>
+      </div>
+      <div class="skill">
+        <h3>網路與資料</h3>
+        <ul>
+          <li>防火牆規則、VPN（Tailscale）存取控管</li>
+          <li>每日備份與還原規劃</li>
+        </ul>
+      </div>
+      <div class="skill">
+        <h3>AI 工具與現場</h3>
+        <ul>
+          <li>本地模型部署（Ollama、llama.cpp）、ComfyUI 影像流程（本機＋RunPod 雲端 GPU）</li>
+          <li>設備除錯、客戶現場支援、能把技術講給外行人聽</li>
+        </ul>
+      </div>
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section id="a-limits">
+    <header>
+      <span class="label">附錄 14 · Known limitations</span>
+      <h2>系統的已知限制</h2>
+    </header>
+    <p>系統每天在用，也還在持續開發。這些是它目前還沒做好的地方，照實列出來；每一條都已經登記，有修復方案或下一步。</p>
+    <div class="limits">
+      <ul>
+        <li><b>記憶考卷還沒過關線。</b>47 題考卷，答案排得到眼前的比例 23%→43%（開關打開時量的，正式環境為了日常對話品質先關著；正式設定 26%），過關線 50%。之後又上了幾批撈記憶的修改，還沒重量。</li>
+        <li><b>世界模擬和日常系統還沒接上，而且模擬本身有 93 條問題要先修。</b>模擬做出來的因果之書，目前沒有任何一條路接到日常運作的 agent；設計目標和實際狀態的差距見附錄 3。</li>
+        <li><b>換模型之後，語氣可能會變。</b>2026-10-22 試換過一次，兩小時內換回；A/B 量到主因是多輪累積的上下文，不只是模型，這一層還在修。換之前一定先過「像不像本人」的基準尺，過不了就不換。</li>
+        <li><b>說話那一層還在雲端。</b>完全搬回本機，要等新的模型伺服器到貨。</li>
+      </ul>
+    </div>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+</div>
+<script>
+(function () {
+  // remember which panels this viewer opened, so a republish doesn't collapse them
+  var panels = Array.prototype.slice.call(document.querySelectorAll('details'));
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('portfolio-open-' + location.pathname) || '{}') || {}; } catch (e) {}
+  panels.forEach(function (d, i) {
+    var key = 'p' + i + ':' + (d.querySelector('summary') || d).textContent.trim().slice(0, 12);
+    d.dataset.key = key;
+    if (saved[key] === 1) d.open = true;
+    if (saved[key] === 0) d.open = false;
+    d.addEventListener('toggle', function () {
+      saved[key] = d.open ? 1 : 0;
+      try { localStorage.setItem('portfolio-open-' + location.pathname, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+
+  var btn = document.getElementById('expandAll');
+  if (btn) {
+  var detailPanels = Array.prototype.slice.call(btn.closest('section').querySelectorAll('details'));
+  function syncLabel() { btn.textContent = detailPanels.every(function (d) { return d.open; }) ? '全部收合' : '全部展開'; }
+  btn.addEventListener('click', function () {
+    var openAll = !detailPanels.every(function (d) { return d.open; });
+    detailPanels.forEach(function (d) { d.open = openAll; });
+    syncLabel();
+  });
+  detailPanels.forEach(function (d) { d.addEventListener('toggle', syncLabel); });
+  syncLabel();
+  }
+
+  // printing opens every panel, then puts back what the viewer had
+  var beforePrint = null;
+  window.addEventListener('beforeprint', function () {
+    beforePrint = panels.map(function (d) { return d.open; });
+    panels.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener('afterprint', function () {
+    if (!beforePrint) return;
+    panels.forEach(function (d, i) { d.open = beforePrint[i]; });
+    beforePrint = null;
+  });
+})();
+</script>
+</body></html>
