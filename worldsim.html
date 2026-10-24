@@ -446,7 +446,19 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <rect class="box" x="20" y="140" width="124" height="44" rx="8"/>
 <text class="bt" x="82.0" y="168" text-anchor="middle">敘事</text>
 <text class="small" x="20" y="236">觀察者只讀：只能看已經結束的世界，不能改。</text>
-</svg></div><figcaption>世界生成管線。標示的是設計規則；哪些量出來不成立，見下面的「自查」。</figcaption></figure><section id="a-worldtree">
+</svg></div><figcaption>世界生成管線。標示的是設計規則；哪些量出來不成立，見下面的「自查」。</figcaption></figure><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 500" role="img" aria-labelledby="tf df">
+<title id="tf">一筆焦點時刻有哪些欄位</title>
+<desc id="df">世界歷史每個紀元一筆紀錄，四條數值門檻規則從裡面挑出焦點時刻。一筆焦點時刻有：紀元名稱與年份起訖；規則類型、顯著度與主線支線背景分層；程式用數字套成句子的起因、呈現、後果；觸發的數字。沒有座標欄位；只有焦點靈魂那類事件帶靈魂 ID。</desc>
+<defs><marker id="ahf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="box" x="20" y="16" width="220" height="112" rx="8"/><text class="bt" x="130" y="62" text-anchor="middle">世界歷史</text><text class="bs" x="130" y="86" text-anchor="middle">每個紀元一筆紀錄</text><text class="bs" x="130" y="104" text-anchor="middle">（世界跑完才掃）</text>
+<line class="flow" x1="240" y1="72" x2="268" y2="72" marker-end="url(#ahf)"/>
+<rect class="box" x="270" y="16" width="430" height="112" rx="8"/><text class="bt" x="286" y="40">四條規則，數值過門檻就挑出來</text><text class="bs" x="286" y="62">① 失衡分數單一紀元跳動 ≥ 0.08（程式叫它「高情緒波動」）</text><text class="bs" x="286" y="80">② 失衡等級升到 2 以上（重大事件）</text><text class="bs" x="286" y="98">③ tier7 掉超過 0.008，或主導種族換了（命運轉折）</text><text class="bs" x="286" y="116">④ 變化延續到後面的紀元（歷史影響力）</text>
+<line class="flow" x1="485" y1="128" x2="485" y2="150" marker-end="url(#ahf)"/>
+<rect class="box strong" x="20" y="152" width="680" height="240" rx="8"/><text class="bt" x="36" y="176">一筆焦點時刻（寫完不能改）</text>
+<rect class="cell" x="32" y="188" width="322" height="92" rx="6"/><text class="bt" x="46" y="212">什麼時候</text><text class="bs" x="46" y="234">紀元名稱</text><text class="bs" x="46" y="252">年份起訖</text><rect class="cell" x="366" y="188" width="322" height="92" rx="6"/><text class="bt" x="380" y="212">為什麼被挑出</text><text class="bs" x="380" y="234">規則類型：上面四種之一；顯著度 0～1</text><text class="bs" x="380" y="252">≥ 0.70 主線、≥ 0.40 支線、其餘背景</text><rect class="cell" x="32" y="290" width="322" height="92" rx="6"/><text class="bt" x="46" y="314">因果描述</text><text class="bs" x="46" y="336">起因、呈現了什麼、後果</text><text class="bs" x="46" y="354">程式把數字套進固定句子；後果看</text><text class="bs" x="46" y="372">下一個紀元的失衡變多還是變少</text><rect class="cell" x="366" y="290" width="322" height="92" rx="6"/><text class="bt" x="380" y="314">數據依據</text><text class="bs" x="380" y="336">觸發規則的那幾個數字</text><text class="bs" x="380" y="354">（例：失衡前後的分數）</text><text class="bs" x="380" y="372">焦點靈魂那類多一個靈魂 ID</text>
+<line class="flow" x1="360" y1="392" x2="360" y2="414" stroke-dasharray="4 3"/>
+<rect class="box soft" x="20" y="414" width="680" height="76" rx="8"/><text class="bt" x="36" y="438">要接到遊戲畫面，還缺兩個欄位</text><text class="bs" x="36" y="460">在哪：沒有座標欄位，一筆就是整個紀元、整個世界。</text><text class="bs" x="36" y="478">誰：只有焦點靈魂那類事件帶 ID，其他三類沒有人物。</text>
+</svg></div><figcaption>焦點時刻的欄位，照程式碼（focus_history.py 的 FocusMoment）畫；沒有跑新的模擬，也沒有放任何一筆內容。世界模擬目前沒有接到日常系統。</figcaption></figure><section id="a-worldtree">
     <header>
       <span class="label">附錄 3 · WorldTree</span>
       <h2>世界樹：世界模擬引擎</h2>
