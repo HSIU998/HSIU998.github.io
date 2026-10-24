@@ -401,42 +401,179 @@ details.ledger th, details.ledger td:nth-child(4), details.ledger td:nth-child(5
 details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 .anim-list { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 8px; }
 @media print { .sitenav { display: none; } .fig-svg { min-width: 0; } figure.fig .figwrap { overflow: visible; } }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--panel); color: var(--ink); padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; z-index: 10; }
+.skip:focus { left: 8px; }
+.pagetoc { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; margin: 4px 0 18px; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.main-sec { margin: 28px 0; }
+.main-sec > h2 { margin-bottom: 8px; }
+.cases3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+@media (max-width: 900px) { .cases3 { grid-template-columns: 1fr; } }
+.case { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--lamp); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.case .label { color: var(--lamp); }
+.case h3 { font-size: 17px; }
+.case dl { margin: 0; font-size: 14px; }
+.case dt { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; color: var(--muted); margin-top: 8px; }
+.case dd { margin: 2px 0 0; }
+.case dd b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.case a.more { font-size: 13px; margin-top: auto; padding-top: 6px; }
+.numtable td:not(:first-child), .numtable th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.pagefoot { font-size: 13px; color: var(--muted); margin: 32px 0 8px; }
+@media print { .skip, .pagetoc { display: none; } }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">跳到主要內容</a>
 <div class="wrap" id="top">
 <nav class="sitenav" aria-label="作品集分頁"><a href="index.html">首頁</a><a href="fae.html">設備／FAE</a><a href="system.html" aria-current="page">本地 AI 系統</a><a href="animation.html">AI 動畫</a><a href="worldsim.html">世界樹</a></nav>
+<main id="main">
 <div class="pagehead" id="system-top"><span class="label">Local AI system</span><h1>本地 AI 系統</h1>
-<p class="lead">個人專案：長期記憶多代理系統。程式由 AI 撰寫；定方向、寫規格和驗收標準、拆任務、驗收與上線決定由我負責。</p></div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 300" role="img" aria-labelledby="t6 d6">
+<p class="lead">個人專案：長期記憶多代理系統。程式由 AI 撰寫；定方向、寫規格和驗收標準、拆任務、驗收與上線決定由我負責。</p></div>
+<nav class="pagetoc" aria-label="本頁">
+  <a href="#cases">三個代表作</a><a href="#can">我能負責什麼</a><a href="#a-limits">還沒做到的</a><a href="#numbers">數字怎麼算</a><a href="#appendix">附錄</a>
+</nav>
+<p class="honest"><b>這是什麼：</b>個人專案，不是商品，我自己每天在用。要解決的問題是：AI 換了模型、開了新視窗、被廠商下架，記憶和身分就跟著消失。這套系統把記憶和身分放在本地，由程式保證每一輪都送得到，模型隨時可以換（業界叫 Agent Memory）。</p>
+<section class="main-sec" id="cases">
+  <h2>三個代表作</h2>
+  <p class="honest">問題是系統自己冒出來的，決定是我做的；程式由 AI 寫。每個案例都寫到「還沒做到的」為止。</p>
+  <div class="cases3">
+  <article class="case" id="case-model">
+    <span class="label">案例 1 · 換模型</span>
+    <h3>換模型，記憶和身分不跟著消失</h3>
+    <dl><dt>問題</dt><dd>雲端模型三次被外部決定打斷：2026-08-31 改按用量計費、09-25 主力模型下架、10-04 額度用完全部停擺（約 6 天）。</dd><dt>我的決定</dt><dd>這不是成本題，是命脈題：狀態不放在模型裡，記憶和身分留在本地，模型可以換。</dd><dt>怎麼做</dt><dd>每個 agent 的記憶、狀態、身分設定都存在本機；雲端和本機模型走同一個介面，換模型不用改程式。</dd><dt>怎麼驗收</dt><dd>換之前先過「像不像本人」的基準尺，過不了就不換。</dd><dt>結果</dt><dd>換過 <b>3</b> 代模型，記憶和身分都延續下來；09-25 主力模型下架那天也沒有跟著消失。</dd><dt>還沒做到</dt><dd>10-22 試換過一次，兩小時內換回：A/B 量到語氣變的主因是多輪累積的上下文，不只是模型。說話那一層還在雲端。</dd></dl>
+    <a class="more" href="#a-continuity">證據：附錄 4 模型時間表 →</a>
+  </article>
+  <article class="case" id="case-recall">
+    <span class="label">案例 2 · 記憶召回</span>
+    <h3>記憶明明在，卻想不起來</h3>
+    <dl><dt>問題</dt><dd>一個 agent 說自己忘了一件很重要的事。查記憶庫，記憶一直都在，是模型沒照提示詞的指示去撈；寫在提示詞裡的事，模型可以選擇不照做。</dd><dt>我的決定</dt><dd>「查記憶」從拜託模型，改成程式在開口前先查好。之後四個地方出現同一型問題，定成規則：該由程式保證的事，不靠模型聽話。</dd><dt>怎麼做</dt><dd>程式判斷這一輪要不要查；用 jieba 斷詞、向量相似度加關鍵字命中找候選，語意、時間、情緒一起算分，去重、重排後放進這一輪。</dd><dt>怎麼驗收</dt><dd>上線那一輪 8 個 agent 各問 2 題，看有沒有執行、那筆記憶排第幾；之後用 47 題記憶考卷量「正確答案排得到眼前的比例」，過關線 50%。</dd><dt>結果</dt><dd>代撈 <b>16／16</b> 執行，那筆記憶從第 38 名排到第 1。</dd><dt>還沒做到</dt><dd>考卷 23%→43% 是開關打開時量的；正式環境為了日常對話品質先關著，正式設定 26%，還沒過 50%。</dd></dl>
+    <a class="more" href="#a-continuity">證據：附錄 4 案例、附錄 6 程式碼 →</a>
+  </article>
+  <article class="case" id="case-ledger">
+    <span class="label">案例 3 · 驗收</span>
+    <h3>燈全綠，不等於好了</h3>
+    <dl><dt>問題</dt><dd>服務重開後燈全綠，用起來卻不對；第一批修復全部通過檢查，但那只證明「程式照寫的跑」，不證明用起來變好。</dd><dt>我的決定</dt><dd>先畫圖再施工；「確定好了」只算正式環境的紀錄證明過的，測試副本過、離線重放過的一律算觀察期。第二批 20 項看兩組測試（記憶考卷 47 題、日常聊天 103 句）決定照常上線，有問題的那一項預設關著。</dd><dt>怎麼做</dt><dd>整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級登記成問題總表再分批修；每一項動手前先寫最終目標、量什麼、過關線。改動先在測試副本跑，守門程式擋住碰正式環境的動作。</dd><dt>怎麼驗收</dt><dd>每次上線前跑閉環檢查，紅燈 0 才上，每次留還原快照；上線後看正式環境的紀錄。</dd><dt>結果</dt><dd>修復帳本累計 <b>267</b> 項修復；代理核心 340 條問題裡 <b>47</b> 條確定好了、<b>131</b> 條在觀察期、<b>41</b> 條部分好了，不會全部算成「修好了」。正在影響運作的 120 條已動手 113 條（94%）。測試期間正式環境寫入 0 筆。</dd><dt>還沒做到</dt><dd>觀察期 131 條還在量效果；還沒碰的 117 條多數是潛伏問題和死碼。</dd></dl>
+    <a class="more" href="#numbers">證據：下面「數字怎麼算」→</a>
+  </article>
+  </div>
+</section>
+<section class="main-sec" id="can">
+  <h2>我能負責什麼</h2>
+  <div class="tablewrap"><table class="cantable">
+    <thead><tr><th>能力</th><th>我做過什麼</th><th>證據</th><th>目前界線</th></tr></thead>
+    <tbody>
+      <tr><td><b>多代理系統的架構與邊界</b></td><td>9 個 agent 各自常駐、各自有記憶庫與狀態，可以單獨停、單獨重開；動到核心資料一律經過同一道寫入閘門（allow／deny／degrade）</td><td>下面的架構圖、附錄 2</td><td>說話那一層還在雲端</td></tr>
+      <tr><td><b>記憶檢索</b></td><td>程式判斷要不要查、混合評分、去重重排、開口前由程式代撈</td><td>代撈 16／16、47 題記憶考卷</td><td>正式設定 26%，過關線 50% 還沒過</td></tr>
+      <tr><td><b>本地部署與換模型</b></td><td>向量服務跑 Intel NPU、失敗退回 CPU；本機 27B 跑背景工作；固定啟動順序；對外只開 VPN；雲端與本機模型同一個介面</td><td>附錄 4、附錄 10</td><td>完全搬回本機要等新的模型伺服器</td></tr>
+      <tr><td><b>維運</b></td><td>每天自動備份、每日體檢只報新問題、看門狗叫回、告警不重複洗版</td><td>每日體檢紀錄、附錄 6</td><td>看門狗的修法 10/23 上線，觀察期</td></tr>
+      <tr><td><b>帶 AI 開發與驗收</b></td><td>定方向和驗收標準、拆任務給多個 AI 工作視窗、交回來的逐條對程式碼核對、決定上不上線</td><td>修復帳本 267 項；一次研究擋下 3 條錯的建議</td><td>程式由 AI 寫；不做模型訓練或演算法研究</td></tr>
+    </tbody>
+  </table></div>
+  <figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 440" role="img" aria-labelledby="t2 d2">
+<title id="t2">系統架構</title>
+<desc id="d2">網頁介面與外部 AI 工具經共用 HTTP 閘道進到 9 個 agent 常駐行程；每個行程有自己的記憶庫與狀態；共用向量服務跑在 Intel NPU、失敗退回 CPU；代查網路用 Brave Search 與 Playwright；模型經 Ollama API；底層有備份、體檢、看門狗與固定啟動順序。</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+<rect class="box" x="20" y="16" width="220" height="56" rx="8"/><text class="bt" x="130" y="40" text-anchor="middle">網頁介面</text><text class="bs" x="130" y="60" text-anchor="middle">只對本機開放</text>
+<rect class="box" x="260" y="16" width="220" height="56" rx="8"/><text class="bt" x="370" y="40" text-anchor="middle">外部 AI 工具</text><text class="bs" x="370" y="60" text-anchor="middle">經 MCP 橋接查、寫記憶</text>
+<line class="flow" x1="130" y1="72" x2="130" y2="104" marker-end="url(#ah)"/><line class="flow" x1="370" y1="72" x2="370" y2="104" marker-end="url(#ah)"/>
+<rect class="box strong" x="20" y="106" width="460" height="62" rx="8"/><text class="bt" x="250" y="131" text-anchor="middle">共用 HTTP 閘道</text><text class="bs" x="250" y="153" text-anchor="middle">寫入閘門：動到核心資料只有 allow／deny／degrade，可追溯、可稽核</text>
+<line class="flow" x1="250" y1="168" x2="250" y2="194" marker-end="url(#ah)"/>
+<rect class="box strong" x="20" y="196" width="460" height="174" rx="8"/><text class="bt" x="250" y="222" text-anchor="middle">9 個 agent 常駐行程（各自的 WebSocket 入口）</text>
+<rect class="cell" x="38" y="238" width="40" height="40" rx="6"/><text class="bs" x="58" y="263" text-anchor="middle">1</text>
+<rect class="cell" x="86" y="238" width="40" height="40" rx="6"/><text class="bs" x="106" y="263" text-anchor="middle">2</text>
+<rect class="cell" x="134" y="238" width="40" height="40" rx="6"/><text class="bs" x="154" y="263" text-anchor="middle">3</text>
+<rect class="cell" x="182" y="238" width="40" height="40" rx="6"/><text class="bs" x="202" y="263" text-anchor="middle">4</text>
+<rect class="cell" x="230" y="238" width="40" height="40" rx="6"/><text class="bs" x="250" y="263" text-anchor="middle">5</text>
+<rect class="cell" x="278" y="238" width="40" height="40" rx="6"/><text class="bs" x="298" y="263" text-anchor="middle">6</text>
+<rect class="cell" x="326" y="238" width="40" height="40" rx="6"/><text class="bs" x="346" y="263" text-anchor="middle">7</text>
+<rect class="cell" x="374" y="238" width="40" height="40" rx="6"/><text class="bs" x="394" y="263" text-anchor="middle">8</text>
+<rect class="cell" x="422" y="238" width="40" height="40" rx="6"/><text class="bs" x="442" y="263" text-anchor="middle">9</text>
+<text class="bs" x="250" y="304" text-anchor="middle">每一個各自有：記憶庫（SQLite WAL＋sqlite-vec 向量索引）、</text>
+<text class="bs" x="250" y="324" text-anchor="middle">知識圖譜、情緒與狀態、身分設定；可單獨停、單獨重開</text>
+<text class="bs em" x="250" y="352" text-anchor="middle">每一輪：程式先撈記憶（必要時查網路）→ 模型說成一句話 → 寫回本地</text>
+<rect class="box" x="520" y="196" width="180" height="54" rx="8"/><text class="bt" x="610" y="218" text-anchor="middle">向量服務（只有一份）</text><text class="bs" x="610" y="238" text-anchor="middle">bge-m3 跑 NPU，失敗退回 CPU</text>
+<rect class="box" x="520" y="258" width="180" height="50" rx="8"/><text class="bt" x="610" y="279" text-anchor="middle">代查網路</text><text class="bs" x="610" y="298" text-anchor="middle">Brave Search＋Playwright</text>
+<rect class="box" x="520" y="316" width="180" height="54" rx="8"/><text class="bt" x="610" y="337" text-anchor="middle">模型（經 Ollama API）</text><text class="bs" x="610" y="357" text-anchor="middle">說話：雲端／背景：本機 27B</text>
+<line class="flow" x1="480" y1="223" x2="518" y2="223" marker-end="url(#ah)"/>
+<line class="flow" x1="480" y1="283" x2="518" y2="283" marker-end="url(#ah)"/>
+<line class="flow" x1="480" y1="343" x2="518" y2="343" marker-end="url(#ah)"/>
+<rect class="box soft" x="20" y="386" width="680" height="44" rx="8"/><text class="bs" x="360" y="413" text-anchor="middle">自己顧自己：每天備份・每日體檢只報新問題・看門狗叫回・固定啟動順序（前一層健康檢查過才起下一層）</text>
+<rect class="box soft" x="520" y="16" width="180" height="152" rx="8"/><text class="bt" x="610" y="42" text-anchor="middle">硬體</text><text class="bs" x="610" y="68" text-anchor="middle">本機 Windows 工作站</text><text class="bs" x="610" y="90" text-anchor="middle">Intel NPU：向量</text><text class="bs" x="610" y="112" text-anchor="middle">RTX 4080 SUPER：</text><text class="bs" x="610" y="132" text-anchor="middle">本機 27B、影像生成</text><text class="bs" x="610" y="154" text-anchor="middle">對外只開 VPN</text>
+</svg></div><figcaption>系統架構。內部代號：代理核心 SoulCore、共用層 WorldTree。細節見附錄 2、6、10。</figcaption></figure>
+  <details class="basis"><summary>九項功能細節（點開）</summary><div>
+  <div class="honest cando"><b>它現在做得到的：</b>
+    <ul style="margin:4px 0 0;padding-left:1.2em">
+      <li><b>長期記得：</b>跨對話視窗、跨月、換了模型，還想得起以前聊過的事；2025 年在聊天平台上說過的話，搬進本機後照樣找得到。</li>
+      <li><b>搜尋記憶：</b>開口前由程式判斷要不要查；要查就用 jieba 斷詞切關鍵字，用向量相似度加關鍵字命中找候選，語意、時間、情緒一起算分，去重、重排後放進這一輪。<span class="note">附註：正確答案排到眼前的比例 23%→43%（開關打開時量的，正式環境為了日常對話品質先關著；正式設定 26%），過關線 50%，還沒過。</span></li>
+      <li><b>代查網路：</b>程式判斷這題要查網路時，在開口前用 Brave Search API 搜尋、用 Playwright 讀網頁全文，材料附網址；查不到就明講查不到，不准憑印象補。<span class="note">附註：2026-08 實測可用，但最近的執行紀錄裡沒有用到，現在的狀態沒有重新驗過；10/23 起每日體檢會打一次搜尋 API 當探針，第一次結果 10/24 才有。</span></li>
+      <li><b>各自的狀態：</b>9 個 agent 各有自己的記憶、情緒和個性參數，每一輪更新、存回本地，重開機也還在。</li>
+      <li><b>agent 之間互相傳訊：</b>可以彼此寫信、回信，各自用自己的記憶回答。</li>
+      <li><b>外部工具接得進來：</b>經 MCP，讓 Claude Code 這類 AI 工具直接查、寫記憶。</li>
+      <li><b>網頁介面：</b>只對本機開放的一個網頁。可以跟 9 個 agent 聊天（群組和各自的房間，紀錄標出是誰說的）；看告警、標成已處理；看最近一筆寫進記憶的內容，以及上一輪程式怎麼判斷、撈了什麼；看每個服務的狀態和執行紀錄；看現在配發了哪些工具、接了哪些外部來源，管理技能庫和鉤子（hooks）。</li>
+      <li><b>換模型不用改程式：</b>雲端和本機模型走同一個介面。</li>
+      <li><b>自己顧自己：</b>每天自動備份、每天體檢只報新的問題、服務掛掉看門狗自動叫回、同一個告警不重複洗版。<span class="note">附註：看門狗自己有過一個洞：10/22～23 每次重開整套系統後都要手動把它叫回來，共 6 次；修法 10/23 晚上線（開機只准一隻、心跳燈進每日體檢），觀察期。</span></li>
+    </ul>
+  </div>
+  </div></details>
+</section>
+<section id="a-limits">
+    <header>
+      <span class="label">Known limitations</span>
+      <h2>還沒做到的</h2>
+    </header>
+    <p>系統每天在用，也還在持續開發。這些是它目前還沒做好的地方，照實列出來；每一條都已經登記，有修復方案或下一步。</p>
+    <div class="limits">
+      <ul>
+        <li><b>記憶考卷還沒過關線。</b>47 題考卷，答案排得到眼前的比例 23%→43%（開關打開時量的，正式環境為了日常對話品質先關著；正式設定 26%），過關線 50%。之後又上了幾批撈記憶的修改，還沒重量。</li>
+        <li><b>世界模擬和日常系統還沒接上，而且模擬本身有 93 條問題要先修。</b>模擬做出來的因果之書，目前沒有任何一條路接到日常運作的 agent；設計目標和實際狀態的差距見附錄 3。</li>
+        <li><b>換模型之後，語氣可能會變。</b>2026-10-22 試換過一次，兩小時內換回；A/B 量到主因是多輪累積的上下文，不只是模型，這一層還在修。換之前一定先過「像不像本人」的基準尺，過不了就不換。</li>
+        <li><b>說話那一層還在雲端。</b>完全搬回本機，要等新的模型伺服器到貨。</li>
+      </ul>
+    </div>
+    <p class="honest">這頁的證據都去掉了名字和私人內容；正式環境只對本機開放，不提供遠端操作。</p>
+    <a class="backtop" href="#top">回到頁首 ↑</a>
+  </section>
+<section class="main-sec" id="numbers">
+  <h2>數字怎麼算</h2>
+  <p class="honest">一個問題要經過這幾步才算「確定好了」：登記進問題總表 → 動手前寫最終目標和過關線 → 測試副本驗過 → 上線、留還原快照（觀察期）→ 正式環境的紀錄證明目標達到。只證明程式有在跑，不算目標達到。</p>
+  <div class="tablewrap"><table class="numtable">
+    <thead><tr><th>範圍</th><th>問題數</th><th>確定好了</th><th>觀察期</th><th>部分好了</th><th>沒過</th><th>還沒碰</th></tr></thead>
+    <tbody>
+      <tr><td>代理核心（每天在跑的系統）</td><td>340</td><td>47</td><td>131</td><td>41</td><td>4</td><td>117</td></tr>
+      <tr><td>世界模擬引擎（還沒接日常）</td><td>93</td><td>0</td><td>10</td><td>11</td><td>0</td><td>72</td></tr>
+      <tr><td><b>合計</b></td><td><b>433</b></td><td><b>47</b></td><td><b>141</b></td><td><b>52</b></td><td><b>4</b></td><td><b>189</b></td></tr>
+    </tbody>
+  </table></div>
+  <p class="caption">截至 2026-10-25 04:45，程式從問題總表＋修復帳本算出，不手改。修復帳本 267 項是「動了幾刀」，不是問題數：一刀可能碰到好幾個問題，一個問題也可能要好幾刀。</p>
+  <figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 300" role="img" aria-labelledby="t6 d6">
 <title id="t6">先看正在影響運作的問題</title>
-<desc id="d6">正在影響運作的 120 條：確定好了 24、觀察期 60、部分好了 25、沒過 3、還沒碰 8，已動手 112 條。潛伏與死碼 219 條：確定好了 23、觀察期 49、部分好了 15、沒過 1、還沒碰 131。另有 1 條改不到。</desc>
-<text class="bt" x="20" y="24">正在影響運作的 120 條：已經動手 112 條（93%），還沒碰 8 條</text>
+<desc id="d6">正在影響運作的 120 條：確定好了 24、觀察期 61、部分好了 25、沒過 3、還沒碰 7，已動手 113 條。潛伏與死碼 219 條：確定好了 23、觀察期 70、部分好了 16、沒過 1、還沒碰 109。另有 1 條改不到。</desc>
+<text class="bt" x="20" y="24">正在影響運作的 120 條：已經動手 113 條（94%），還沒碰 7 條</text>
 <rect class="c-ok" x="20.0" y="36" width="72.5" height="26" rx="4"><title>確定好了 24 條</title></rect>
 <text class="lbl" x="57.3" y="82" text-anchor="middle">確定好了 <tspan class="numt">24</tspan></text>
-<rect class="c-obs" x="94.5" y="36" width="184.3" height="26" rx="4"><title>觀察期 60 條</title></rect>
-<text class="lbl" x="187.7" y="82" text-anchor="middle">觀察期 <tspan class="numt">60</tspan></text>
-<rect class="c-part" x="280.8" y="36" width="75.6" height="26" rx="4"><title>部分好了 25 條</title></rect>
-<text class="lbl" x="319.6" y="82" text-anchor="middle">部分好了 <tspan class="numt">25</tspan></text>
-<rect class="c-fail" x="358.4" y="36" width="7.3" height="26" rx="4"><title>沒過 3 條</title></rect>
-<text class="lbl" x="403.1" y="100">沒過 <tspan class="numt">3</tspan></text>
-<path class="flow" d="M363.1,64 L363.1,95 L399.1,95"/>
-<rect class="c-none" x="367.8" y="36" width="22.8" height="26" rx="4"><title>還沒碰 8 條</title></rect>
-<text class="lbl" x="400.6" y="54">還沒碰 <tspan class="numt">8</tspan></text>
-<text class="bt" x="20" y="152">潛伏與死碼 219 條：已經動手 88 條，其餘 131 條排程清理中</text>
+<rect class="c-obs" x="94.5" y="36" width="187.4" height="26" rx="4"><title>觀察期 61 條</title></rect>
+<text class="lbl" x="189.2" y="82" text-anchor="middle">觀察期 <tspan class="numt">61</tspan></text>
+<rect class="c-part" x="283.9" y="36" width="75.6" height="26" rx="4"><title>部分好了 25 條</title></rect>
+<text class="lbl" x="322.7" y="82" text-anchor="middle">部分好了 <tspan class="numt">25</tspan></text>
+<rect class="c-fail" x="361.6" y="36" width="7.3" height="26" rx="4"><title>沒過 3 條</title></rect>
+<text class="lbl" x="406.2" y="100">沒過 <tspan class="numt">3</tspan></text>
+<path class="flow" d="M366.2,64 L366.2,95 L402.2,95"/>
+<rect class="c-none" x="370.9" y="36" width="19.7" height="26" rx="4"><title>還沒碰 7 條</title></rect>
+<text class="lbl" x="400.6" y="54">還沒碰 <tspan class="numt">7</tspan></text>
+<text class="bt" x="20" y="152">潛伏與死碼 219 條：已經動手 110 條，其餘 109 條排程清理中</text>
 <rect class="c-ok" x="20.0" y="164" width="69.4" height="26" rx="4"><title>確定好了 23 條</title></rect>
 <text class="lbl" x="55.7" y="210" text-anchor="middle">確定好了 <tspan class="numt">23</tspan></text>
-<rect class="c-obs" x="91.4" y="164" width="150.1" height="26" rx="4"><title>觀察期 49 條</title></rect>
-<text class="lbl" x="167.5" y="210" text-anchor="middle">觀察期 <tspan class="numt">49</tspan></text>
-<rect class="c-part" x="243.6" y="164" width="44.6" height="26" rx="4"><title>部分好了 15 條</title></rect>
-<text class="lbl" x="252.8" y="210" text-anchor="middle">部分好了 <tspan class="numt">15</tspan></text>
-<rect class="c-fail" x="290.1" y="164" width="2.0" height="26" rx="4"><title>沒過 1 條</title></rect>
-<text class="lbl" x="331.7" y="228">沒過 <tspan class="numt">1</tspan></text>
-<path class="flow" d="M291.7,192 L291.7,223 L327.7,223"/>
-<rect class="c-none" x="293.2" y="164" width="404.8" height="26" rx="4"><title>還沒碰 131 條</title></rect>
-<text class="lbl" x="496.6" y="210" text-anchor="middle">還沒碰 <tspan class="numt">131</tspan></text>
-<text class="small" x="20" y="282">另有 1 條改不到。兩條長條同一個比例尺；截至 2026-10-24 22:37，分類由程式從問題總表＋修復帳本算出。</text>
-</svg></div><figcaption>先看會出事的那一塊：正在影響運作的問題處理到哪了。10/23 → 10/24：修復 192 → 227 項、還沒碰 162 → 140 條。</figcaption></figure><details class="basis ledger"><summary>修復帳本摘要（227 刀；程式從帳本產生，日期取自版本紀錄）</summary><div>
-<p class="caption">「帳上結果」是每一刀當時記的結果；「確定好了」的分類另外照 10/24 的規則算：只有正式環境的紀錄證明過才算，測試副本裡的「過」算觀察期。每一刀都有「最終目標／量什麼／結果／依據」四欄；這裡只放編號、問題群、結果和在哪驗的。目標那句只有通過過濾（不含名字、路徑、程式識別字）的才顯示，其餘 209 刀只顯示類別。完整帳本面試時可在本機展示。有日期的 214 刀，分布在 4 天：10-21 9 刀、10-22 82 刀、10-23 92 刀、10-24 31 刀。</p>
+<rect class="c-obs" x="91.4" y="164" width="215.4" height="26" rx="4"><title>觀察期 70 條</title></rect>
+<text class="lbl" x="200.1" y="210" text-anchor="middle">觀察期 <tspan class="numt">70</tspan></text>
+<rect class="c-part" x="308.8" y="164" width="47.7" height="26" rx="4"><title>部分好了 16 條</title></rect>
+<text class="lbl" x="319.6" y="210" text-anchor="middle">部分好了 <tspan class="numt">16</tspan></text>
+<rect class="c-fail" x="358.4" y="164" width="2.0" height="26" rx="4"><title>沒過 1 條</title></rect>
+<text class="lbl" x="400.0" y="228">沒過 <tspan class="numt">1</tspan></text>
+<path class="flow" d="M360.0,192 L360.0,223 L396.0,223"/>
+<rect class="c-none" x="361.6" y="164" width="336.4" height="26" rx="4"><title>還沒碰 109 條</title></rect>
+<text class="lbl" x="530.8" y="210" text-anchor="middle">還沒碰 <tspan class="numt">109</tspan></text>
+<text class="small" x="20" y="282">另有 1 條改不到。兩條長條同一個比例尺；截至 2026-10-25 04:45，分類由程式從問題總表＋修復帳本算出。</text>
+</svg></div><figcaption>先看會出事的那一塊：正在影響運作的問題處理到哪了。10/24 → 10/25：修復 227 → 267 項、還沒碰 140 → 117 條。</figcaption></figure><details class="basis ledger"><summary>修復帳本摘要（267 刀；程式從帳本產生，日期取自版本紀錄）</summary><div>
+<p class="caption">「帳上結果」是每一刀當時記的結果；「確定好了」的分類另外照 10/24 的規則算：只有正式環境的紀錄證明過才算，測試副本裡的「過」算觀察期。每一刀都有「最終目標／量什麼／結果／依據」四欄；這裡只放編號、問題群、結果和在哪驗的。目標那句只有通過過濾（不含名字、路徑、程式識別字）的才顯示，其餘 245 刀只顯示類別。完整帳本面試時可在本機展示。有日期的 253 刀，分布在 5 天：10-21 9 刀、10-22 82 刀、10-23 92 刀、10-24 31 刀、10-25 39 刀。</p>
 <div class="tablewrap"><table><thead><tr><th>日期</th><th>刀號</th><th>問題群</th><th>帳上結果</th><th>在哪驗的</th><th>目標</th></tr></thead><tbody>
 <tr><td>10-21 20:25</td><td>W2-base</td><td>程式代替角色產生內容、因果紀錄、提示詞體積</td><td>部分</td><td>正式環境</td><td>—</td></tr>
 <tr><td>10-21 23:44</td><td>B5-DEAD-EE2</td><td>記憶檢索</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
@@ -652,11 +789,51 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <tr><td>10-24 04:14</td><td>SC4-B2note</td><td>經驗蒸餾</td><td>部分</td><td>測試副本</td><td>—</td></tr>
 <tr><td>10-24 04:16</td><td>SC4-WL1dir</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>—</td></tr>
 <tr><td>10-24 04:20</td><td>SC4-LS2sentinel</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:14</td><td>FIX-RECALL-0</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:15</td><td>FIX-RECALL-G1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:18</td><td>FIX-RECALL-F2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:18</td><td>FIX-RECALL-I1</td><td>記憶檢索</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:19</td><td>FIXPROMPT-B1</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:19</td><td>FIXPROMPT-E2</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:19</td><td>FIXPROMPT-E4</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:19</td><td>FIXPROMPT-NF1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:20</td><td>FIX-RECALL-A1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>語意召回沒在動時看得見原因；沒撈到不冒充撈到</td></tr>
+<tr><td>10-25 01:20</td><td>FIX-RECALL-A2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:26</td><td>FG-B2</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:26</td><td>FG-D1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:26</td><td>FG-F2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:26</td><td>FG-GX1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:26</td><td>FG-VS1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:34</td><td>FG-NF63</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:34</td><td>FIX-PREFETCH-NF19-T2</td><td>程式代替角色產生內容</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 01:34</td><td>FIX-PREFETCH-NF67</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:29</td><td>FLC-NP1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>就算有人把欄位名補對，沒量測資料時批次也不會被調；有資料時調整有上下界</td></tr>
+<tr><td>10-25 02:30</td><td>FLC-EA1</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:30</td><td>FLC-WS3</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:31</td><td>FLC-DL23</td><td>任務委派</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:32</td><td>FLC-HR1</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:32</td><td>FLC-PC4</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:35</td><td>FLA-B2</td><td>存取安全</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:37</td><td>FLA-I3</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:37</td><td>FLA-PL1</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>設定檔寫的權重就是實際用的權重；不合法時看得到，不靜默換掉</td></tr>
+<tr><td>10-25 02:37</td><td>FLA-PL2</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:39</td><td>FLA-A2</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:39</td><td>FLA-A3</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:39</td><td>FLA-IE1</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:39</td><td>FLA-LT1</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:41</td><td>FIX-LEI-B-A5</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:41</td><td>FIX-LEI-B-AL2</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:41</td><td>FIX-LEI-B-EH1</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>存檔真的失敗時不安靜丟掉：真的再存、存成功才算成功、全失敗有告警，上一份檔不壞（原子換檔本來就有）。</td></tr>
+<tr><td>10-25 02:41</td><td>FIX-LEI-B-GT1</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:41</td><td>FIX-LEI-B-NF60</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:41</td><td>FIX-LEI-B-RT8</td><td>主動對話</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 02:41</td><td>FIX-LEI-B-WM2</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
 <tr><td>未記</td><td>B5-DEAD-A1env</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
 <tr><td>未記</td><td>B5-DEAD-G1</td><td>記憶歸屬錯置</td><td>過</td><td>正式環境</td><td>知道合成工具寫了哪裡</td></tr>
 <tr><td>未記</td><td>B6-NF32-1</td><td>系統訊息擠占上下文</td><td>部分</td><td>測試副本</td><td>—</td></tr>
 <tr><td>未記</td><td>B6-PREFS-4</td><td>模板被寫成記憶</td><td>還沒碰</td><td>—</td><td>—</td></tr>
 <tr><td>未記</td><td>B6-PREFS-5</td><td>過期狀態當成現在</td><td>部分</td><td>測試副本</td><td>—</td></tr>
+<tr><td>未記</td><td>FIX-LEI-B-WF2</td><td>因果紀錄</td><td>量不到</td><td>測試副本</td><td>—</td></tr>
 <tr><td>未記</td><td>S1-op</td><td>記憶歸屬錯置</td><td>部分</td><td>正式環境</td><td>—</td></tr>
 <tr><td>未記</td><td>SC1f-1</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
 <tr><td>未記</td><td>SC1f-2</td><td>監控與告警</td><td>只驗了機制</td><td>正式環境</td><td>—</td></tr>
@@ -695,130 +872,41 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <text class="lbl" x="663.3" y="24.0" text-anchor="middle"><tspan class="numt">330</tspan></text>
 <text class="small" x="663.3" y="198" text-anchor="middle">10 月</text>
 <text class="small" x="40" y="16">2026 年，程式註解裡標了日期的修改記號（同一行只算一次）</text>
-</svg></div><figcaption>帳本是 10/21 才開始記的；在那之前，修改是寫在程式註解裡、標了日期的記號。這裡只算家裡核心程式（不含備份、虛擬環境、一次性工具）的註解，同一行只算一次，共 869 個；拿 7/12～8/21 對照開發歷程寫的「約 540 個」，這次算出 505 個。另外 2 月的版本紀錄有 156 次提交（之後到 10 月才又交進版本紀錄）。只有數量，不放內容。</figcaption></figure></div></details><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 440" role="img" aria-labelledby="t2 d2">
-<title id="t2">系統架構</title>
-<desc id="d2">網頁介面與外部 AI 工具經共用 HTTP 閘道進到 9 個 agent 常駐行程；每個行程有自己的記憶庫與狀態；共用向量服務跑在 Intel NPU、失敗退回 CPU；代查網路用 Brave Search 與 Playwright；模型經 Ollama API；底層有備份、體檢、看門狗與固定啟動順序。</desc>
-<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>
-<rect class="box" x="20" y="16" width="220" height="56" rx="8"/><text class="bt" x="130" y="40" text-anchor="middle">網頁介面</text><text class="bs" x="130" y="60" text-anchor="middle">只對本機開放</text>
-<rect class="box" x="260" y="16" width="220" height="56" rx="8"/><text class="bt" x="370" y="40" text-anchor="middle">外部 AI 工具</text><text class="bs" x="370" y="60" text-anchor="middle">經 MCP 橋接查、寫記憶</text>
-<line class="flow" x1="130" y1="72" x2="130" y2="104" marker-end="url(#ah)"/><line class="flow" x1="370" y1="72" x2="370" y2="104" marker-end="url(#ah)"/>
-<rect class="box strong" x="20" y="106" width="460" height="62" rx="8"/><text class="bt" x="250" y="131" text-anchor="middle">共用 HTTP 閘道</text><text class="bs" x="250" y="153" text-anchor="middle">寫入閘門：動到核心資料只有 allow／deny／degrade，可追溯、可稽核</text>
-<line class="flow" x1="250" y1="168" x2="250" y2="194" marker-end="url(#ah)"/>
-<rect class="box strong" x="20" y="196" width="460" height="174" rx="8"/><text class="bt" x="250" y="222" text-anchor="middle">9 個 agent 常駐行程（各自的 WebSocket 入口）</text>
-<rect class="cell" x="38" y="238" width="40" height="40" rx="6"/><text class="bs" x="58" y="263" text-anchor="middle">1</text>
-<rect class="cell" x="86" y="238" width="40" height="40" rx="6"/><text class="bs" x="106" y="263" text-anchor="middle">2</text>
-<rect class="cell" x="134" y="238" width="40" height="40" rx="6"/><text class="bs" x="154" y="263" text-anchor="middle">3</text>
-<rect class="cell" x="182" y="238" width="40" height="40" rx="6"/><text class="bs" x="202" y="263" text-anchor="middle">4</text>
-<rect class="cell" x="230" y="238" width="40" height="40" rx="6"/><text class="bs" x="250" y="263" text-anchor="middle">5</text>
-<rect class="cell" x="278" y="238" width="40" height="40" rx="6"/><text class="bs" x="298" y="263" text-anchor="middle">6</text>
-<rect class="cell" x="326" y="238" width="40" height="40" rx="6"/><text class="bs" x="346" y="263" text-anchor="middle">7</text>
-<rect class="cell" x="374" y="238" width="40" height="40" rx="6"/><text class="bs" x="394" y="263" text-anchor="middle">8</text>
-<rect class="cell" x="422" y="238" width="40" height="40" rx="6"/><text class="bs" x="442" y="263" text-anchor="middle">9</text>
-<text class="bs" x="250" y="304" text-anchor="middle">每一個各自有：記憶庫（SQLite WAL＋sqlite-vec 向量索引）、</text>
-<text class="bs" x="250" y="324" text-anchor="middle">知識圖譜、情緒與狀態、身分設定；可單獨停、單獨重開</text>
-<text class="bs em" x="250" y="352" text-anchor="middle">每一輪：程式先撈記憶（必要時查網路）→ 模型說成一句話 → 寫回本地</text>
-<rect class="box" x="520" y="196" width="180" height="54" rx="8"/><text class="bt" x="610" y="218" text-anchor="middle">向量服務（只有一份）</text><text class="bs" x="610" y="238" text-anchor="middle">bge-m3 跑 NPU，失敗退回 CPU</text>
-<rect class="box" x="520" y="258" width="180" height="50" rx="8"/><text class="bt" x="610" y="279" text-anchor="middle">代查網路</text><text class="bs" x="610" y="298" text-anchor="middle">Brave Search＋Playwright</text>
-<rect class="box" x="520" y="316" width="180" height="54" rx="8"/><text class="bt" x="610" y="337" text-anchor="middle">模型（經 Ollama API）</text><text class="bs" x="610" y="357" text-anchor="middle">說話：雲端／背景：本機 27B</text>
-<line class="flow" x1="480" y1="223" x2="518" y2="223" marker-end="url(#ah)"/>
-<line class="flow" x1="480" y1="283" x2="518" y2="283" marker-end="url(#ah)"/>
-<line class="flow" x1="480" y1="343" x2="518" y2="343" marker-end="url(#ah)"/>
-<rect class="box soft" x="20" y="386" width="680" height="44" rx="8"/><text class="bs" x="360" y="413" text-anchor="middle">自己顧自己：每天備份・每日體檢只報新問題・看門狗叫回・固定啟動順序（前一層健康檢查過才起下一層）</text>
-<rect class="box soft" x="520" y="16" width="180" height="152" rx="8"/><text class="bt" x="610" y="42" text-anchor="middle">硬體</text><text class="bs" x="610" y="68" text-anchor="middle">本機 Windows 工作站</text><text class="bs" x="610" y="90" text-anchor="middle">Intel NPU：向量</text><text class="bs" x="610" y="112" text-anchor="middle">RTX 4080 SUPER：</text><text class="bs" x="610" y="132" text-anchor="middle">本機 27B、影像生成</text><text class="bs" x="610" y="154" text-anchor="middle">對外只開 VPN</text>
-</svg></div><figcaption>系統架構。內部代號：代理核心 SoulCore、共用層 WorldTree。細節見附錄 2、6、10。</figcaption></figure><p class="honest"><b>這是什麼：</b>個人專案，不是商品，我自己每天在用。要解決的問題是：AI 換了模型、開了新視窗、被廠商下架，記憶和身分就跟著消失。這套系統把記憶和身分放在本地，由程式保證每一輪都送得到，模型隨時可以換（業界叫 Agent Memory）。</p>
-
-  <div class="honest cando"><b>它現在做得到的：</b>
-    <ul style="margin:4px 0 0;padding-left:1.2em">
-      <li><b>長期記得：</b>跨對話視窗、跨月、換了模型，還想得起以前聊過的事；2025 年在聊天平台上說過的話，搬進本機後照樣找得到。</li>
-      <li><b>搜尋記憶：</b>開口前由程式判斷要不要查；要查就用 jieba 斷詞切關鍵字，用向量相似度加關鍵字命中找候選，語意、時間、情緒一起算分，去重、重排後放進這一輪。<span class="note">附註：正確答案排到眼前的比例 23%→43%（開關打開時量的，正式環境為了日常對話品質先關著；正式設定 26%），過關線 50%，還沒過。</span></li>
-      <li><b>代查網路：</b>程式判斷這題要查網路時，在開口前用 Brave Search API 搜尋、用 Playwright 讀網頁全文，材料附網址；查不到就明講查不到，不准憑印象補。<span class="note">附註：2026-08 實測可用，但最近的執行紀錄裡沒有用到，現在的狀態沒有重新驗過；10/23 起每日體檢會打一次搜尋 API 當探針，第一次結果 10/24 才有。</span></li>
-      <li><b>各自的狀態：</b>9 個 agent 各有自己的記憶、情緒和個性參數，每一輪更新、存回本地，重開機也還在。</li>
-      <li><b>agent 之間互相傳訊：</b>可以彼此寫信、回信，各自用自己的記憶回答。</li>
-      <li><b>外部工具接得進來：</b>經 MCP，讓 Claude Code 這類 AI 工具直接查、寫記憶。</li>
-      <li><b>網頁介面：</b>只對本機開放的一個網頁。可以跟 9 個 agent 聊天（群組和各自的房間，紀錄標出是誰說的）；看告警、標成已處理；看最近一筆寫進記憶的內容，以及上一輪程式怎麼判斷、撈了什麼；看每個服務的狀態和執行紀錄；看現在配發了哪些工具、接了哪些外部來源，管理技能庫和鉤子（hooks）。</li>
-      <li><b>換模型不用改程式：</b>雲端和本機模型走同一個介面。</li>
-      <li><b>自己顧自己：</b>每天自動備份、每天體檢只報新的問題、服務掛掉看門狗自動叫回、同一個告警不重複洗版。<span class="note">附註：看門狗自己有過一個洞：10/22～23 每次重開整套系統後都要手動把它叫回來，共 6 次；修法 10/23 晚上線（開機只准一隻、心跳燈進每日體檢），觀察期。</span></li>
-    </ul>
-  </div>
-
-  <p class="honest"><b>分工照實說：</b>程式由 AI 寫。我做的是定方向、寫規格和驗收標準、拆任務給 AI、驗收 AI 交回來的東西，最後決定上不上線。下面三件事，都是我做的決定。</p>
-
-  <div class="highlights">
-    <article class="hl">
-      <span class="label">決定 1 · 供應商風險</span>
-      <h3>本地化是必須，不是選項</h3>
-      <p>我判斷這不是成本題，是命脈題：狀態不放在模型裡，模型可以換，記憶和身分留在本地。</p>
-      <p class="note">起因：雲端模型被廠商下架、額度用完全部停擺、改按用量計費月費變三到四倍，三次被外部決定打斷。</p>
-      <p class="res">結果：換過 <b>3</b> 代模型，記憶和身分都延續下來（2026-09-25 主力模型下架那天也沒有跟著消失）；之前在聊天平台上用過 2 個。新機器的採購標準也照這條定：能不能 24 小時跑、不被額度卡住。</p>
-      <details class="basis"><summary>依據</summary><div>
-        <span>三次被打斷：2026-08-31 改按用量計費、2026-09-25 主力模型下架、2026-10-04 額度用完全部停擺，執行紀錄看得到 10/04～10/09 約 6 天。</span>
-        <span>模型時間表與每次換的原因見附錄 4。</span>
-      </div></details>
-      <a class="more" href="#a-continuity">附錄 4 看細節 →</a>
-    </article>
-    <article class="hl">
-      <span class="label">決定 2 · 驗收標準</span>
-      <h3>每一項都要有最終目標和結果</h3>
-      <p>第一批修復全部通過檢查，但那只證明「程式照寫的跑」。我要求每一項動手修改前先寫三欄：最終目標（使用者感受得到的那一句）、量什麼、過關線；驗收時分開記「程式有在跑」和「目標有沒有達到」；上線了、還在量效果的，標「觀察期」。</p>
-      <p class="res">結果：修復帳本累計 <b>227</b> 項修復，每一項都有「最終目標／量什麼／結果／依據」四欄。以問題算，<b>47</b> 條確定好了、<b>109</b> 條在觀察期、<b>40</b> 條部分好了，不會全部被算成「修好了」。</p>
-      <details class="basis"><summary>依據</summary><div>
-        <span>修復帳本（截至 2026-10-24 22:37）：227 項，每次上線前跑閉環檢查，紅燈 0。問題總表 340 條（代理核心）：確定好了 47、觀察期 109、部分好了 40、沒過 4、還沒碰 140（多數是潛伏問題和死碼）；分類由程式從問題總表＋修復帳本算出，不手改。</span>
-        <span>三筆原件（去掉名字）放在附錄 6 的 G 段。</span>
-      </div></details>
-      <a class="more" href="#a-details">附錄 6 看細節 →</a>
-    </article>
-    <article class="hl">
-      <span class="label">決定 3 · 上線</span>
-      <h3>看兩組測試的數字決定開關</h3>
-      <p>第二批 20 項修復要不要上線？我看了兩組測試的數字（記憶考卷 47 題、日常聊天 103 句）後決定：第二批照常上線；其中測試發現有問題的那一項，預設關著，等兩組測試都過了才打開。</p>
-      <p class="res">結果：第二批 <b>20</b> 項當天上線；有風險的那一項關著時，跟舊版的比對測試 <b>3／3</b> 一致，不用等最難的那一項。</p>
-      <details class="basis"><summary>依據</summary><div>
-        <span>決定記在版本紀錄裡：2026-10-22 05:46 的提交，訊息裡附我的原話（「第二批照蓋」）。</span>
-        <span>兩組測試：記憶考卷 47 題、日常聊天 103 句（看修改有沒有副作用）。</span>
-      </div></details>
-      <a class="more" href="#a-details">附錄 6 看細節 →</a>
-    </article>
-  </div>
-
-  <div class="tablewrap">
-    <table>
-      <tbody>
-        <tr><th>客戶現場</th><td>做 FAE 時，客戶產品的公差跟當初給的樣品對不上，結果一直異常。我收集大樣本做母體統計，查出是不同型號的耗材分不出來造成的，再拿數據提出對策。學到的兩件事：先建立足夠的數據，用數據證明判斷；抓對痛點再對症下藥。<a href="fae.html#a-cases">附錄 11 →</a></td></tr>
-        <tr><th>拆任務與分工</th><td>主工作視窗只做調度和驗收；可以平行的工作拆給其他 AI 工作視窗，交回來的結果逐條核對過才採用。例：一次研究交回的建議裡，有三條對照程式碼後是錯的，核對時就擋下來；回頭查，原因是題目給的背景不夠，之後出題一定附上相關的程式碼。</td></tr>
-        <tr><th>先畫圖再施工</th><td>改核心之前要求先把整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級排序，再分批修。2026-10-23 世界模擬引擎（31,812 行）也畫完：當初的設計說法有好幾條量出來不成立，照實改寫在附錄 3。<a href="worldsim.html#a-worldtree">附錄 3 →</a></td></tr>
-        <tr><th>把個案升成規則</th><td>四個地方出現同一型問題時，定調成架構缺陷，不一個一個補：該由程式保證的事，不靠模型聽話。</td></tr>
-      </tbody>
-    </table>
-  </div>
-
+</svg></div><figcaption>帳本是 10/21 才開始記的；在那之前，修改是寫在程式註解裡、標了日期的記號。這裡只算家裡核心程式（不含備份、虛擬環境、一次性工具）的註解，同一行只算一次，共 869 個；拿 7/12～8/21 對照開發歷程寫的「約 540 個」，這次算出 505 個。另外 2 月的版本紀錄有 156 次提交（之後到 10 月才又交進版本紀錄）。只有數量，不放內容。</figcaption></figure></div></details>
   <div class="stats">
-    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；正式環境已更新 13 次，每次先在測試副本驗過、留還原快照</span></div>
+    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；正式環境已更新 15 次，每次先在測試副本驗過、留還原快照</span></div>
     <div class="stat"><b>0</b><span>筆正式環境寫入：測試期間守門程式擋下 17 次寫入、9 次碰正式服務</span></div>
   </div>
   <details class="basis"><summary>這兩個數字的依據</summary><div>
-    <span>340：問題總表（截至 2026-10-24 22:37），2026-10-21 從 118 份子系統藍圖逐條抽出第一版，之後新發現的陸續登記；每個問題都有編號、追得回它出自哪一份藍圖。還沒碰的 140 條裡，116 條可以直接改、15 條標「改之前要先評估對 agent 的影響」、9 條等我裁決。世界模擬引擎的 93 條另外登記，不在這 340 條裡（合計 433）。</span>
-    <span>13 次：照每次更新前留的還原快照數，2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29；每一次都可以一鍵退回。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
+    <span>340：問題總表（截至 2026-10-25 04:45），2026-10-21 從 118 份子系統藍圖逐條抽出第一版，之後新發現的陸續登記；每個問題都有編號、追得回它出自哪一份藍圖。還沒碰的 117 條裡，93 條可以直接改、15 條標「改之前要先評估對 agent 的影響」、9 條等我裁決。世界模擬引擎的 93 條另外登記，不在這 340 條裡（合計 433）。</span>
+    <span>15 次：照每次更新前留的還原快照數，2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29、23:21，10-25 04:26；每一次都可以一鍵退回。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
     <span>0 筆：測試副本的守門紀錄，2026-10-21 08:17 到 10-22 06:09 之間，擋下寫入 17 次、碰正式服務 9 次、啟動正式行程 3 次，放行的正式寫入 0 次。</span>
   </div></details>
   <p class="caption">服務重開後走哪條路、多快就緒（燈全綠但用起來不對那次），寫在<a href="fae.html#a-cases">設備／FAE 頁的異常處理紀錄</a>。</p><details class="basis"><summary>全部 340 條的五類（依據）</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 140" role="img" aria-labelledby="t3 d3">
 <title id="t3">問題總表 340 條的處理狀態</title>
-<desc id="d3">確定好了 47、觀察期 109、部分好了 40、沒過 4、還沒碰 140。</desc>
+<desc id="d3">確定好了 47、觀察期 131、部分好了 41、沒過 4、還沒碰 117。</desc>
 <rect class="c-ok" x="20.0" y="30" width="92.0" height="28" rx="4"><title>確定好了 47 條</title></rect>
 <text class="lbl" x="67.0" y="82" text-anchor="middle">確定好了 <tspan class="numt">47</tspan></text>
-<rect class="c-obs" x="114.0" y="30" width="216.0" height="28" rx="4"><title>觀察期 109 條</title></rect>
-<text class="lbl" x="223.0" y="82" text-anchor="middle">觀察期 <tspan class="numt">109</tspan></text>
-<rect class="c-part" x="332.0" y="30" width="78.0" height="28" rx="4"><title>部分好了 40 條</title></rect>
-<text class="lbl" x="372.0" y="82" text-anchor="middle">部分好了 <tspan class="numt">40</tspan></text>
-<rect class="c-fail" x="412.0" y="30" width="6.0" height="28" rx="4"><title>沒過 4 條</title></rect>
-<line class="tick" x1="416.0" y1="60" x2="416.0" y2="92"/>
-<text class="lbl" x="416.0" y="104" text-anchor="middle">沒過 <tspan class="numt">4</tspan></text>
-<rect class="c-none" x="420.0" y="30" width="278.0" height="28" rx="4"><title>還沒碰 140 條</title></rect>
-<text class="lbl" x="560.0" y="82" text-anchor="middle">還沒碰 <tspan class="numt">140</tspan></text>
-<text class="small" x="560.0" y="102" text-anchor="middle">潛伏 69・死碼 62・正在影響 8・改不到 1</text>
-<text class="small" x="20" y="20">代理核心問題總表 340 條（截至 2026-10-24 22:37；分類由程式從問題總表＋修復帳本算出）</text>
-<text class="lbl" x="20" y="128">正在影響運作的 120 條裡，112 條已經動手（確定好了 24、觀察期 60、部分好了 25、沒過 3），還沒碰 8 條。</text>
-</svg></div><figcaption>確定好了＝正式環境的紀錄（log、設定或服務狀態）證明目標真的達到；只在測試副本過、或離線重放過的，一律算觀察期（10/24 照這條把舊帳重新核對過）；觀察期＝已經上線、程式確定有作用，還在量用起來有沒有變好；部分好了＝目標只達到一部分；沒過＝量了沒達標，繼續修；還沒碰＝還沒動手。不會把「做了」算成「修好了」。</figcaption></figure></div></details><div class="appendix-head" id="appendix">
-    <span class="label">Appendix</span>
+<rect class="c-obs" x="114.0" y="30" width="260.0" height="28" rx="4"><title>觀察期 131 條</title></rect>
+<text class="lbl" x="245.0" y="82" text-anchor="middle">觀察期 <tspan class="numt">131</tspan></text>
+<rect class="c-part" x="376.0" y="30" width="80.0" height="28" rx="4"><title>部分好了 41 條</title></rect>
+<text class="lbl" x="417.0" y="82" text-anchor="middle">部分好了 <tspan class="numt">41</tspan></text>
+<rect class="c-fail" x="458.0" y="30" width="6.0" height="28" rx="4"><title>沒過 4 條</title></rect>
+<line class="tick" x1="462.0" y1="60" x2="462.0" y2="92"/>
+<text class="lbl" x="462.0" y="104" text-anchor="middle">沒過 <tspan class="numt">4</tspan></text>
+<rect class="c-none" x="466.0" y="30" width="232.0" height="28" rx="4"><title>還沒碰 117 條</title></rect>
+<text class="lbl" x="583.0" y="82" text-anchor="middle">還沒碰 <tspan class="numt">117</tspan></text>
+<text class="small" x="583.0" y="102" text-anchor="middle">潛伏 47・死碼 62・正在影響 7・改不到 1</text>
+<text class="small" x="20" y="20">代理核心問題總表 340 條（截至 2026-10-25 04:45；分類由程式從問題總表＋修復帳本算出）</text>
+<text class="lbl" x="20" y="128">正在影響運作的 120 條裡，113 條已經動手（確定好了 24、觀察期 61、部分好了 25、沒過 3），還沒碰 7 條。</text>
+</svg></div><figcaption>確定好了＝正式環境的紀錄（log、設定或服務狀態）證明目標真的達到；只在測試副本過、或離線重放過的，一律算觀察期（10/24 照這條把舊帳重新核對過）；觀察期＝已經上線、程式確定有作用，還在量用起來有沒有變好；部分好了＝目標只達到一部分；沒過＝量了沒達標，繼續修；還沒碰＝還沒動手。不會把「做了」算成「修好了」。</figcaption></figure></div></details>
+</section>
+
+
+    
+
+    <div class="appendix-head" id="appendix">
+    <span class="label" id="appendix">Appendix</span>
     <h2>附錄：想看細節再往下</h2>
     <ol class="toc">
       <li><a href="#a-summary"><span class="n">1</span>技術摘要</a></li>
@@ -834,7 +922,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
       <li><a href="fae.html#a-cases"><span class="n">11</span>異常處理紀錄</a></li>
       <li><a href="animation.html#a-channel"><span class="n">12</span>頻道作品</a></li>
       <li><a href="fae.html#a-exp"><span class="n">13</span>經歷與技能</a></li>
-      <li><a href="#a-limits"><span class="n">14</span>系統的已知限制</a></li>
+      <li><a href="#a-limits"><span class="n">14</span>還沒做到的（已移到上面）</a></li>
     </ol>
   </div>
 <section id="a-summary">
@@ -924,7 +1012,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <blockquote class="why">
             <p>這些 agent 是要長期使用的。記憶一旦丟了，就不是同一個 agent 了；所以記憶不能丟，也不能因為廠商下架、額度用完或漲價就被關掉。後面每一個工程決定都從這裡出發：要本地化、要把記憶保住、改核心之前一定先在沙盒試過。</p>
           </blockquote>
-          <p>每個角色有自己的記憶庫、個性和情緒狀態。每一輪對話都會先撈出相關的記憶，回覆之後再把這段對話寫回去，所以角色記得之前聊過什麼。會影響角色行為的修改，先評估影響、確認過才動：目前登記的 340 個問題裡，還沒改的 140 個中有 15 個標成「改之前要先評估對 agent 的影響」。</p>
+          <p>每個角色有自己的記憶庫、個性和情緒狀態。每一輪對話都會先撈出相關的記憶，回覆之後再把這段對話寫回去，所以角色記得之前聊過什麼。會影響角色行為的修改，先評估影響、確認過才動：目前登記的 340 個問題裡，還沒改的 117 個中有 15 個標成「改之前要先評估對 agent 的影響」。</p>
         </div>
       </details>
 
@@ -1468,13 +1556,13 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
             <div class="brief-row"><span class="bk">最後清</span><span>沒在用、或沒有實際作用的程式碼 <b class="num">124</b> 個</span></div>
           </div>
           <p>最常見的問題都長同一個樣子：功能看起來在、紀錄也在印，可是沒人量過它有沒有真的在做事。所以我要求每一顆模組都要有一個量得到的數字。</p>
-          <p><b>進度（截至 2026-10-24 22:37，照修復帳本與問題總表）</b></p>
+          <p><b>進度（截至 2026-10-25 04:45，照修復帳本與問題總表）</b></p>
           <div class="stats">
-            <div class="stat"><b>227</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
-            <div class="stat"><b>13</b><span>次更新到正式環境，每次先在測試副本驗過、都留還原快照</span></div>
-            <div class="stat"><b>47</b><span>個問題確定好了（另 109 個觀察期、40 個部分好了）</span></div>
+            <div class="stat"><b>267</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
+            <div class="stat"><b>15</b><span>次更新到正式環境，每次先在測試副本驗過、都留還原快照</span></div>
+            <div class="stat"><b>47</b><span>個問題確定好了（另 131 個觀察期、41 個部分好了）</span></div>
           </div>
-          <p>「觀察期」是修改已經上線、程式確定有作用，正在量用起來有沒有比較好；4 個量了沒過，繼續修；還沒碰的 140 個多數是潛伏問題和死碼。因為每一項都要求分層驗收，這些才分得出來，不會全部被算成「修好了」。</p>
+          <p>「觀察期」是修改已經上線、程式確定有作用，正在量用起來有沒有比較好；4 個量了沒過，繼續修；還沒碰的 117 個多數是潛伏問題和死碼。因為每一項都要求分層驗收，這些才分得出來，不會全部被算成「修好了」。</p>
         </div>
       </details>
 
@@ -1768,22 +1856,9 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
     </div>
     <a class="backtop" href="#top">回到頁首 ↑</a>
   </section>
-<section id="a-limits">
-    <header>
-      <span class="label">附錄 14 · Known limitations</span>
-      <h2>系統的已知限制</h2>
-    </header>
-    <p>系統每天在用，也還在持續開發。這些是它目前還沒做好的地方，照實列出來；每一條都已經登記，有修復方案或下一步。</p>
-    <div class="limits">
-      <ul>
-        <li><b>記憶考卷還沒過關線。</b>47 題考卷，答案排得到眼前的比例 23%→43%（開關打開時量的，正式環境為了日常對話品質先關著；正式設定 26%），過關線 50%。之後又上了幾批撈記憶的修改，還沒重量。</li>
-        <li><b>世界模擬和日常系統還沒接上，而且模擬本身有 93 條問題要先修。</b>模擬做出來的因果之書，目前沒有任何一條路接到日常運作的 agent；設計目標和實際狀態的差距見附錄 3。</li>
-        <li><b>換模型之後，語氣可能會變。</b>2026-10-22 試換過一次，兩小時內換回；A/B 量到主因是多輪累積的上下文，不只是模型，這一層還在修。換之前一定先過「像不像本人」的基準尺，過不了就不換。</li>
-        <li><b>說話那一層還在雲端。</b>完全搬回本機，要等新的模型伺服器到貨。</li>
-      </ul>
-    </div>
-    <a class="backtop" href="#top">回到頁首 ↑</a>
-  </section>
+</main>
+<footer class="pagefoot"><a href="#top">回到頁首 ↑</a> · <a href="index.html">首頁</a></footer>
+
 </div>
 <script>
 (function () {
