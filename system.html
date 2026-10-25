@@ -455,7 +455,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
   <article class="case" id="case-ledger">
     <span class="label">案例 3 · 驗收</span>
     <h3>燈全綠，不等於好了</h3>
-    <dl><dt>問題</dt><dd>服務重開後燈全綠，用起來卻不對；第一批修復全部通過檢查，但那只證明「程式照寫的跑」，不證明用起來變好。</dd><dt>我的決定</dt><dd>先畫圖再施工；「確定好了」只算每天在用的系統的紀錄證明過的，測試副本過、離線重放過的一律算觀察期。第二批 20 項看兩組測試（記憶考卷 47 題、日常聊天 103 句）決定照常上線，有問題的那一項預設關著。</dd><dt>怎麼做</dt><dd>整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級登記成問題總表再分批修；每一項動手前先寫最終目標、量什麼、過關線。改動先在測試副本跑，守門程式擋住碰每天在用的系統的動作。</dd><dt>怎麼驗收</dt><dd>每次上線前跑閉環檢查，紅燈 0 才上，每次留還原快照；上線後看每天在用的系統的紀錄。</dd><dt>結果</dt><dd>修改紀錄累計 <b>267</b> 項修復；代理核心 340 條問題裡 <b>47</b> 條確定好了、<b>126</b> 條在觀察期、<b>7</b> 條碼在沒開／只在沙盒、<b>43</b> 條部分好了，不會全部算成「修好了」。正在影響運作的 120 條已動手 117 條（98%）。測試期間每天在用的系統寫入 0 筆。</dd><dt>還沒做到</dt><dd>觀察期 126 條還在量效果；還沒碰的 113 條多數是潛伏問題和死碼。另有幾條修法寫好了，但家裡的開關還關著、或只在測試副本，另外算，不算觀察期。</dd></dl>
+    <dl><dt>問題</dt><dd>服務重開後燈全綠，用起來卻不對；第一批修復全部通過檢查，但那只證明「程式照寫的跑」，不證明用起來變好。</dd><dt>我的決定</dt><dd>先畫圖再施工；「確定好了」只算每天在用的系統的紀錄證明過的，測試副本過、離線重放過的一律算觀察期。第二批 20 項看兩組測試（記憶考卷 47 題、日常聊天 103 句）決定照常上線，有問題的那一項預設關著。</dd><dt>怎麼做</dt><dd>整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級登記成問題總表再分批修；每一項動手前先寫最終目標、量什麼、過關線。改動先在測試副本跑，守門程式擋住碰每天在用的系統的動作。</dd><dt>怎麼驗收</dt><dd>每次上線前跑閉環檢查，紅燈 0 才上，每次留還原快照；上線後看每天在用的系統的紀錄。</dd><dt>結果</dt><dd>修改紀錄累計 <b>282</b> 項修復；代理核心 340 條問題裡 <b>47</b> 條確定好了、<b>126</b> 條在觀察期、<b>7</b> 條碼在沒開／只在沙盒、<b>43</b> 條部分好了，不會全部算成「修好了」。正在影響運作的 120 條已動手 117 條（98%）。測試期間每天在用的系統寫入 0 筆。</dd><dt>還沒做到</dt><dd>觀察期 126 條還在量效果；還沒碰的 113 條多數是潛伏問題和死碼。另有幾條修法寫好了，但家裡的開關還關著、或只在測試副本，另外算，不算觀察期。</dd></dl>
     <a class="more" href="#numbers">證據：下面「數字怎麼算」→</a>
   </article>
   </div>
@@ -476,7 +476,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
       <tr><td><b>記憶檢索</b></td><td>程式判斷要不要查、混合評分、去重重排、開口前由程式代撈</td><td>代撈 16／16、47 題記憶考卷</td><td>正式設定 26%，過關線 50% 還沒過</td></tr>
       <tr><td><b>本地部署與換模型</b></td><td>向量服務跑 Intel NPU、失敗退回 CPU；本機 27B 跑背景工作；固定啟動順序；對外只開 VPN；雲端與本機模型同一個介面</td><td>附錄 4、附錄 10</td><td>完全搬回本機要等新的模型伺服器</td></tr>
       <tr><td><b>維運</b></td><td>每天自動備份、每日體檢只報新問題、看門狗叫回、告警不重複洗版</td><td>每日體檢紀錄、附錄 6</td><td>看門狗的修法 10/23 上線，觀察期</td></tr>
-      <tr><td><b>帶 AI 開發與驗收</b></td><td>定方向和驗收標準、拆任務給多個 AI 工作視窗、交回來的逐條對程式碼核對、決定上不上線（<a href="#ai-errors">抓到 AI 錯的三個例子</a>）</td><td>修改紀錄 267 項；一次研究擋下 3 條錯的建議</td><td>程式由 AI 寫；不做模型訓練或演算法研究</td></tr>
+      <tr><td><b>帶 AI 開發與驗收</b></td><td>定方向和驗收標準、拆任務給多個 AI 工作視窗、交回來的逐條對程式碼核對、決定上不上線（<a href="#ai-errors">抓到 AI 錯的三個例子</a>）</td><td>修改紀錄 282 項；一次研究擋下 3 條錯的建議</td><td>程式由 AI 寫；不做模型訓練或演算法研究</td></tr>
     </tbody>
   </table></div>
   <figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 440" role="img" aria-labelledby="t2 d2">
@@ -554,7 +554,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
       <tr><td><b>合計</b></td><td><b>433</b></td><td><b>47</b></td><td><b>135</b></td><td><b>8</b></td><td><b>54</b></td><td><b>4</b></td><td><b>185</b></td></tr>
     </tbody>
   </table></div>
-  <p class="caption">截至 2026-10-25 16:30，程式從問題總表＋修改紀錄算出，不手改。修改紀錄 267 項是「動了幾刀」，不是問題數：一刀可能碰到好幾個問題，一個問題也可能要好幾刀。</p>
+  <p class="caption">截至 2026-10-25 19:21，程式從問題總表＋修改紀錄算出，不手改。修改紀錄 282 項是「動了幾刀」，不是問題數：一刀可能碰到好幾個問題，一個問題也可能要好幾刀。</p>
   <p class="caption">世界模擬是另一個研究，目前沒有接到日常系統；這頁只放它的問題數，細節在<a href="worldsim.html">世界樹頁</a>。</p>
   <details class="basis"><summary>長條圖：正在影響運作的問題處理到哪</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 300" role="img" aria-labelledby="t6 d6">
 <title id="t6">先看正在影響運作的問題</title>
@@ -590,8 +590,8 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <rect class="c-none" x="361.6" y="164" width="336.4" height="26" rx="4"><title>還沒碰 109 條</title></rect>
 <text class="lbl" x="530.8" y="210" text-anchor="middle">還沒碰 <tspan class="numt">109</tspan></text>
 <text class="small" x="20" y="282">另有 1 條改不到。兩條長條同一個比例尺；截至 2026-10-25 16:30，分類由程式從問題總表＋修改紀錄算出。</text>
-</svg></div><figcaption>先看會出事的那一塊：正在影響運作的問題處理到哪了。10/24 → 10/25：修復 227 → 267 項、還沒碰 140 → 117 條。</figcaption></figure></div></details><details class="basis ledger"><summary>修改紀錄摘要（267 刀；程式從帳本產生，日期取自版本紀錄）</summary><div>
-<p class="caption">「帳上結果」是每一刀當時記的結果；「確定好了」的分類另外照 10/24 的規則算：只有每天在用的系統的紀錄證明過才算，測試副本裡的「過」算觀察期。每一刀都有「最終目標／量什麼／結果／依據」四欄；這裡只放編號、問題群、結果和在哪驗的。目標那句只有通過過濾（不含名字、路徑、程式識別字）的才顯示，其餘 245 刀只顯示類別。完整帳本面試時可在本機展示。有日期的 253 刀，分布在 5 天：10-21 9 刀、10-22 82 刀、10-23 92 刀、10-24 31 刀、10-25 39 刀。</p>
+</svg></div><figcaption>先看會出事的那一塊：正在影響運作的問題處理到哪了。10/24 → 10/25：修復 227 → 267 項、還沒碰 140 → 117 條。</figcaption></figure></div></details><details class="basis ledger"><summary>修改紀錄摘要（282 刀；程式從帳本產生，日期取自版本紀錄）</summary><div>
+<p class="caption">「帳上結果」是每一刀當時記的結果；「確定好了」的分類另外照 10/24 的規則算：只有每天在用的系統的紀錄證明過才算，測試副本裡的「過」算觀察期。每一刀都有「最終目標／量什麼／結果／依據」四欄；這裡只放編號、問題群、結果和在哪驗的。目標那句只有通過過濾（不含名字、路徑、程式識別字）的才顯示，其餘 258 刀只顯示類別。完整帳本面試時可在本機展示。有日期的 268 刀，分布在 5 天：10-21 9 刀、10-22 82 刀、10-23 92 刀、10-24 31 刀、10-25 54 刀。</p>
 <div class="tablewrap"><table><thead><tr><th>日期</th><th>刀號</th><th>問題群</th><th>帳上結果</th><th>在哪驗的</th><th>目標</th></tr></thead><tbody>
 <tr><td>10-21 20:25</td><td>W2-base</td><td>程式代替角色產生內容、因果紀錄、提示詞體積</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
 <tr><td>10-21 23:44</td><td>B5-DEAD-EE2</td><td>記憶檢索</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
@@ -846,6 +846,21 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <tr><td>10-25 02:41</td><td>FIX-LEI-B-NF60</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
 <tr><td>10-25 02:41</td><td>FIX-LEI-B-RT8</td><td>主動對話</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
 <tr><td>10-25 02:41</td><td>FIX-LEI-B-WM2</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:20</td><td>F2G1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:25</td><td>F2G1-P</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:26</td><td>FIX10-NF27</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:26</td><td>FIX10-NF29</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:28</td><td>F2G1-U</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:29</td><td>FIX10-C1-SRC</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:29</td><td>FIX10-RT6-SRC</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:30</td><td>FIX10-C1-INDEP</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>因果強度不再被一個自己驗自己的 100% 放大兩成；沒有獨立證據就不調權重（有因才有果）</td></tr>
+<tr><td>10-25 05:31</td><td>FIX10-QB3</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:33</td><td>FIX10-DS1</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:39</td><td>FIX10-F2B</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>任何一種寫入請求，閘道都回得出「有沒有寫進去」，不會一個位元組都不回</td></tr>
+<tr><td>10-25 05:39</td><td>FIX10-LIVE</td><td>過期狀態當成現在、記憶檢索、監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:39</td><td>FIX10-WS2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:39</td><td>NF1-RT</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
+<tr><td>10-25 05:40</td><td>FIX10-E2-PER</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
 <tr><td>未記</td><td>B5-DEAD-A1env</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
 <tr><td>未記</td><td>B5-DEAD-G1</td><td>記憶歸屬錯置</td><td>過</td><td>每天在用的系統</td><td>知道合成工具寫了哪裡</td></tr>
 <tr><td>未記</td><td>B6-NF32-1</td><td>系統訊息擠占上下文</td><td>部分</td><td>測試副本</td><td>—</td></tr>
@@ -1589,7 +1604,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <p>最常見的問題都長同一個樣子：功能看起來在、紀錄也在印，可是沒人量過它有沒有真的在做事。所以我要求每一顆模組都要有一個量得到的數字。</p>
           <p><b>進度（截至 2026-10-25 05:12，照修改紀錄與問題總表）</b></p>
           <div class="stats">
-            <div class="stat"><b>267</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
+            <div class="stat"><b>282</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
             <div class="stat"><b>16</b><span>次更新到每天在用的系統，每次先在測試副本驗過、都留還原快照</span></div>
             <div class="stat"><b>47</b><span>個問題確定好了（另 126 個觀察期、43 個部分好了）</span></div>
           </div>
