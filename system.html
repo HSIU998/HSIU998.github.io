@@ -455,7 +455,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
   <article class="case" id="case-ledger">
     <span class="label">案例 3 · 驗收</span>
     <h3>燈全綠，不等於好了</h3>
-    <dl><dt>問題</dt><dd>服務重開後燈全綠，用起來卻不對；第一批修復全部通過檢查，但那只證明「程式照寫的跑」，不證明用起來變好。</dd><dt>我的決定</dt><dd>先畫圖再施工；「確定好了」只算每天在用的系統的紀錄證明過的，測試副本過、離線重放過的一律算觀察期。第二批 20 項看兩組測試（記憶考卷 47 題、日常聊天 103 句）決定照常上線，有問題的那一項預設關著。</dd><dt>怎麼做</dt><dd>整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級登記成問題總表再分批修；每一項動手前先寫最終目標、量什麼、過關線。改動先在測試副本跑，守門程式擋住碰每天在用的系統的動作。</dd><dt>怎麼驗收</dt><dd>每次上線前跑閉環檢查，紅燈 0 才上，每次留還原快照；上線後看每天在用的系統的紀錄。</dd><dt>結果</dt><dd>修改紀錄累計 <b>282</b> 項修復；代理核心 340 條問題裡 <b>47</b> 條確定好了、<b>126</b> 條在觀察期、<b>7</b> 條碼在沒開／只在沙盒、<b>43</b> 條部分好了，不會全部算成「修好了」。正在影響運作的 120 條已動手 117 條（98%）。測試期間每天在用的系統寫入 0 筆。</dd><dt>還沒做到</dt><dd>觀察期 126 條還在量效果；還沒碰的 113 條多數是潛伏問題和死碼。另有幾條修法寫好了，但家裡的開關還關著、或只在測試副本，另外算，不算觀察期。</dd></dl>
+    <dl><dt>問題</dt><dd>服務重開後燈全綠，用起來卻不對；第一批修復全部通過檢查，但那只證明「程式照寫的跑」，不證明用起來變好。</dd><dt>我的決定</dt><dd>先畫圖再施工；「確定好了」只算每天在用的系統的紀錄證明過的，測試副本過、離線重放過的一律算觀察期。第二批 20 項看兩組測試（記憶考卷 47 題、日常聊天 103 句）決定照常上線，有問題的那一項預設關著。</dd><dt>怎麼做</dt><dd>整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級登記成問題總表再分批修；每一項動手前先寫最終目標、量什麼、過關線。改動先在測試副本跑，守門程式擋住碰每天在用的系統的動作。</dd><dt>怎麼驗收</dt><dd>每次上線前跑閉環檢查，紅燈 0 才上，每次留還原快照；上線後看每天在用的系統的紀錄。</dd><dt>結果</dt><dd>修改紀錄累計 <b>282</b> 項修復；代理核心 340 條問題裡 <b>47</b> 條確定好了、<b>127</b> 條在觀察期、<b>7</b> 條碼在沒開／只在沙盒、<b>43</b> 條部分好了，不會全部算成「修好了」。正在影響運作的 120 條已動手 118 條（98%）。測試期間每天在用的系統寫入 0 筆。</dd><dt>還沒做到</dt><dd>觀察期 127 條還在量效果；還沒碰的 112 條多數是潛伏問題和死碼。另有幾條修法寫好了，但家裡的開關還關著、或只在測試副本，另外算，不算觀察期。</dd></dl>
     <a class="more" href="#numbers">證據：下面「數字怎麼算」→</a>
   </article>
   </div>
@@ -549,31 +549,31 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
   <div class="tablewrap"><table class="numtable">
     <thead><tr><th>範圍</th><th>問題數</th><th>確定好了</th><th>觀察期</th><th>碼在沒開／只在沙盒</th><th>部分好了</th><th>沒過</th><th>還沒碰</th></tr></thead>
     <tbody>
-      <tr><td>代理核心（每天在跑的系統）</td><td>340</td><td>47</td><td>126</td><td>7</td><td>43</td><td>4</td><td>113</td></tr>
-      <tr><td>世界模擬引擎（還沒接日常）</td><td>93</td><td>0</td><td>9</td><td>1</td><td>11</td><td>0</td><td>72</td></tr>
-      <tr><td><b>合計</b></td><td><b>433</b></td><td><b>47</b></td><td><b>135</b></td><td><b>8</b></td><td><b>54</b></td><td><b>4</b></td><td><b>185</b></td></tr>
+      <tr><td>代理核心（每天在跑的系統）</td><td>340</td><td>47</td><td>127</td><td>7</td><td>43</td><td>4</td><td>112</td></tr>
+      <tr><td>世界模擬引擎（還沒接日常）</td><td>93</td><td>0</td><td>10</td><td>1</td><td>11</td><td>0</td><td>71</td></tr>
+      <tr><td><b>合計</b></td><td><b>433</b></td><td><b>47</b></td><td><b>137</b></td><td><b>8</b></td><td><b>54</b></td><td><b>4</b></td><td><b>183</b></td></tr>
     </tbody>
   </table></div>
-  <p class="caption">截至 2026-10-25 19:21，程式從問題總表＋修改紀錄算出，不手改。修改紀錄 282 項是「動了幾刀」，不是問題數：一刀可能碰到好幾個問題，一個問題也可能要好幾刀。</p>
+  <p class="caption">截至 2026-10-26 16:30，程式從問題總表＋修改紀錄算出，不手改。修改紀錄 282 項是「動了幾刀」，不是問題數：一刀可能碰到好幾個問題，一個問題也可能要好幾刀。</p>
   <p class="caption">世界模擬是另一個研究，目前沒有接到日常系統；這頁只放它的問題數，細節在<a href="worldsim.html">世界樹頁</a>。</p>
   <details class="basis"><summary>長條圖：正在影響運作的問題處理到哪</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 300" role="img" aria-labelledby="t6 d6">
 <title id="t6">先看正在影響運作的問題</title>
-<desc id="d6">正在影響運作的 120 條：確定好了 24、觀察期 58、碼在沒開／只在沙盒 5、部分好了 27、沒過 3、還沒碰 3，已動手 117 條。潛伏與死碼 219 條：確定好了 23、觀察期 68、碼在沒開／只在沙盒 2、部分好了 16、沒過 1、還沒碰 109。另有 1 條改不到。</desc>
-<text class="bt" x="20" y="24">正在影響運作的 120 條：已經動手 117 條（98%），還沒碰 3 條</text>
+<desc id="d6">正在影響運作的 120 條：確定好了 24、觀察期 59、碼在沒開／只在沙盒 5、部分好了 27、沒過 3、還沒碰 2，已動手 118 條。潛伏與死碼 219 條：確定好了 23、觀察期 68、碼在沒開／只在沙盒 2、部分好了 16、沒過 1、還沒碰 109。另有 1 條改不到。</desc>
+<text class="bt" x="20" y="24">正在影響運作的 120 條：已經動手 118 條（98%），還沒碰 2 條</text>
 <rect class="c-ok" x="20.0" y="36" width="72.5" height="26" rx="4"><title>確定好了 24 條</title></rect>
 <text class="lbl" x="57.3" y="82" text-anchor="middle">確定好了 <tspan class="numt">24</tspan></text>
-<rect class="c-obs" x="94.5" y="36" width="178.1" height="26" rx="4"><title>觀察期 58 條</title></rect>
-<text class="lbl" x="184.6" y="82" text-anchor="middle">觀察期 <tspan class="numt">58</tspan></text>
-<rect class="c-noeff" x="274.6" y="36" width="13.5" height="26" rx="4"><title>碼在沒開／只在沙盒 5 條</title></rect>
-<text class="lbl" x="322.4" y="118">碼在沒開／只在沙盒 <tspan class="numt">5</tspan></text>
-<path class="flow" d="M282.4,64 L282.4,113 L318.4,113"/>
-<rect class="c-part" x="290.1" y="36" width="81.8" height="26" rx="4"><title>部分好了 27 條</title></rect>
-<text class="lbl" x="332.1" y="82" text-anchor="middle">部分好了 <tspan class="numt">27</tspan></text>
-<rect class="c-fail" x="374.0" y="36" width="7.3" height="26" rx="4"><title>沒過 3 條</title></rect>
-<text class="lbl" x="418.6" y="100">沒過 <tspan class="numt">3</tspan></text>
-<path class="flow" d="M378.6,64 L378.6,95 L414.6,95"/>
-<rect class="c-none" x="383.3" y="36" width="7.3" height="26" rx="4"><title>還沒碰 3 條</title></rect>
-<text class="lbl" x="400.6" y="54">還沒碰 <tspan class="numt">3</tspan></text>
+<rect class="c-obs" x="94.5" y="36" width="181.2" height="26" rx="4"><title>觀察期 59 條</title></rect>
+<text class="lbl" x="186.1" y="82" text-anchor="middle">觀察期 <tspan class="numt">59</tspan></text>
+<rect class="c-noeff" x="277.7" y="36" width="13.5" height="26" rx="4"><title>碼在沒開／只在沙盒 5 條</title></rect>
+<text class="lbl" x="325.5" y="118">碼在沒開／只在沙盒 <tspan class="numt">5</tspan></text>
+<path class="flow" d="M285.5,64 L285.5,113 L321.5,113"/>
+<rect class="c-part" x="293.2" y="36" width="81.8" height="26" rx="4"><title>部分好了 27 條</title></rect>
+<text class="lbl" x="335.2" y="82" text-anchor="middle">部分好了 <tspan class="numt">27</tspan></text>
+<rect class="c-fail" x="377.1" y="36" width="7.3" height="26" rx="4"><title>沒過 3 條</title></rect>
+<text class="lbl" x="421.7" y="100">沒過 <tspan class="numt">3</tspan></text>
+<path class="flow" d="M381.7,64 L381.7,95 L417.7,95"/>
+<rect class="c-none" x="386.4" y="36" width="4.2" height="26" rx="4"><title>還沒碰 2 條</title></rect>
+<text class="lbl" x="400.6" y="54">還沒碰 <tspan class="numt">2</tspan></text>
 <text class="bt" x="20" y="152">潛伏與死碼 219 條：已經動手 110 條，其餘 109 條排程清理中</text>
 <rect class="c-ok" x="20.0" y="164" width="69.4" height="26" rx="4"><title>確定好了 23 條</title></rect>
 <text class="lbl" x="55.7" y="210" text-anchor="middle">確定好了 <tspan class="numt">23</tspan></text>
@@ -589,7 +589,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <path class="flow" d="M360.0,192 L360.0,223 L396.0,223"/>
 <rect class="c-none" x="361.6" y="164" width="336.4" height="26" rx="4"><title>還沒碰 109 條</title></rect>
 <text class="lbl" x="530.8" y="210" text-anchor="middle">還沒碰 <tspan class="numt">109</tspan></text>
-<text class="small" x="20" y="282">另有 1 條改不到。兩條長條同一個比例尺；截至 2026-10-25 16:30，分類由程式從問題總表＋修改紀錄算出。</text>
+<text class="small" x="20" y="282">另有 1 條改不到。兩條長條同一個比例尺；截至 2026-10-26 16:30，分類由程式從問題總表＋修改紀錄算出。</text>
 </svg></div><figcaption>先看會出事的那一塊：正在影響運作的問題處理到哪了。10/24 → 10/25 16:30：還沒碰 140 → 113 條（修改刀數見下方摘要）。</figcaption></figure></div></details><details class="basis ledger"><summary>修改紀錄摘要（282 刀；程式從帳本產生，日期取自版本紀錄）</summary><div>
 <p class="caption">「帳上結果」是每一刀當時記的結果；「確定好了」的分類另外照 10/24 的規則算：只有每天在用的系統的紀錄證明過才算，測試副本裡的「過」算觀察期。每一刀都有「最終目標／量什麼／結果／依據」四欄；這裡只放編號、問題群、結果和在哪驗的。目標那句只有通過過濾（不含名字、路徑、程式識別字）的才顯示，其餘 258 刀只顯示類別。完整帳本面試時可在本機展示。有日期的 268 刀，分布在 5 天：10-21 9 刀、10-22 82 刀、10-23 92 刀、10-24 31 刀、10-25 54 刀。</p>
 <div class="tablewrap"><table><thead><tr><th>日期</th><th>刀號</th><th>問題群</th><th>帳上結果</th><th>在哪驗的</th><th>目標</th></tr></thead><tbody>
@@ -907,34 +907,34 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <text class="small" x="40" y="16">2026 年，程式註解裡標了日期的修改記號（同一行只算一次）</text>
 </svg></div><figcaption>帳本是 10/21 才開始記的；在那之前，修改是寫在程式註解裡、標了日期的記號。這裡只算家裡核心程式（不含備份、虛擬環境、一次性工具）的註解，同一行只算一次，共 869 個；拿 7/12～8/21 對照開發歷程寫的「約 540 個」，這次算出 505 個。另外 2 月的版本紀錄有 156 次提交（之後到 10 月才又交進版本紀錄）。只有數量，不放內容。</figcaption></figure></div></details>
   <div class="stats">
-    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；每天在用的系統已更新 16 次，每次先在測試副本驗過、留還原快照</span></div>
+    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；每天在用的系統已更新 17 次，每次先在測試副本驗過、留還原快照</span></div>
     <div class="stat"><b>0</b><span>筆每天在用的系統寫入：測試期間守門程式擋下 17 次寫入、9 次碰正式服務</span></div>
   </div>
   <details class="basis"><summary>這兩個數字的依據</summary><div>
-    <span>340：問題總表（截至 2026-10-25 16:30），2026-10-21 從 118 份子系統藍圖逐條抽出第一版，之後新發現的陸續登記；每個問題都有編號、追得回它出自哪一份藍圖。還沒碰的 113 條裡，89 條可以直接改、15 條標「改之前要先評估對 agent 的影響」、9 條等我裁決。世界模擬引擎的 93 條另外登記，不在這 340 條裡（合計 433）。</span>
-    <span>16 次：照每次更新前留的還原快照數，2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29、23:21，10-25 04:26、07:44；每一次都先留還原快照。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
+    <span>340：問題總表（截至 2026-10-26 16:30），2026-10-21 從 118 份子系統藍圖逐條抽出第一版，之後新發現的陸續登記；每個問題都有編號、追得回它出自哪一份藍圖。還沒碰的 112 條裡，89 條可以直接改、14 條標「改之前要先評估對 agent 的影響」、9 條等我裁決。世界模擬引擎的 93 條另外登記，不在這 340 條裡（合計 433）。</span>
+    <span>17 次：照每次更新前留的還原快照數，2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29、23:21，10-25 04:26、07:44、23:49；每一次都先留還原快照。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
     <span>0 筆：測試副本的守門紀錄，2026-10-21 08:17 到 10-22 06:09 之間，擋下寫入 17 次、碰正式服務 9 次、啟動正式行程 3 次，放行的正式寫入 0 次。</span>
   </div></details>
   <p class="caption">服務重開後走哪條路、多快就緒（燈全綠但用起來不對那次），寫在<a href="fae.html#a-cases">設備／FAE 頁的異常處理紀錄</a>。</p><details class="basis"><summary>全部 340 條的六類（依據）</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 140" role="img" aria-labelledby="t3 d3">
 <title id="t3">問題總表 340 條的處理狀態</title>
-<desc id="d3">確定好了 47、觀察期 126、碼在沒開／只在沙盒 7、部分好了 43、沒過 4、還沒碰 113。</desc>
+<desc id="d3">確定好了 47、觀察期 127、碼在沒開／只在沙盒 7、部分好了 43、沒過 4、還沒碰 112。</desc>
 <rect class="c-ok" x="20.0" y="30" width="92.0" height="28" rx="4"><title>確定好了 47 條</title></rect>
 <text class="lbl" x="67.0" y="82" text-anchor="middle">確定好了 <tspan class="numt">47</tspan></text>
-<rect class="c-obs" x="114.0" y="30" width="250.0" height="28" rx="4"><title>觀察期 126 條</title></rect>
-<text class="lbl" x="240.0" y="82" text-anchor="middle">觀察期 <tspan class="numt">126</tspan></text>
-<rect class="c-noeff" x="366.0" y="30" width="12.0" height="28" rx="4"><title>碼在沒開／只在沙盒 7 條</title></rect>
-<line class="tick" x1="373.0" y1="60" x2="373.0" y2="92"/>
-<text class="lbl" x="367.0" y="104" text-anchor="end">碼在沒開／只在沙盒 <tspan class="numt">7</tspan></text>
-<rect class="c-part" x="380.0" y="30" width="84.0" height="28" rx="4"><title>部分好了 43 條</title></rect>
-<text class="lbl" x="423.0" y="82" text-anchor="middle">部分好了 <tspan class="numt">43</tspan></text>
-<rect class="c-fail" x="466.0" y="30" width="6.0" height="28" rx="4"><title>沒過 4 條</title></rect>
-<line class="tick" x1="470.0" y1="60" x2="470.0" y2="92"/>
-<text class="lbl" x="470.0" y="104" text-anchor="middle">沒過 <tspan class="numt">4</tspan></text>
-<rect class="c-none" x="474.0" y="30" width="224.0" height="28" rx="4"><title>還沒碰 113 條</title></rect>
-<text class="lbl" x="587.0" y="82" text-anchor="middle">還沒碰 <tspan class="numt">113</tspan></text>
-<text class="small" x="587.0" y="102" text-anchor="middle">潛伏 47・死碼 62・正在影響 3・改不到 1</text>
-<text class="small" x="20" y="20">代理核心問題總表 340 條（截至 2026-10-25 16:30；分類由程式從問題總表＋修改紀錄算出）</text>
-<text class="lbl" x="20" y="128">正在影響運作的 120 條裡，117 條已經動手，還沒碰 3 條。</text>
+<rect class="c-obs" x="114.0" y="30" width="252.0" height="28" rx="4"><title>觀察期 127 條</title></rect>
+<text class="lbl" x="241.0" y="82" text-anchor="middle">觀察期 <tspan class="numt">127</tspan></text>
+<rect class="c-noeff" x="368.0" y="30" width="12.0" height="28" rx="4"><title>碼在沒開／只在沙盒 7 條</title></rect>
+<line class="tick" x1="375.0" y1="60" x2="375.0" y2="92"/>
+<text class="lbl" x="369.0" y="104" text-anchor="end">碼在沒開／只在沙盒 <tspan class="numt">7</tspan></text>
+<rect class="c-part" x="382.0" y="30" width="84.0" height="28" rx="4"><title>部分好了 43 條</title></rect>
+<text class="lbl" x="425.0" y="82" text-anchor="middle">部分好了 <tspan class="numt">43</tspan></text>
+<rect class="c-fail" x="468.0" y="30" width="6.0" height="28" rx="4"><title>沒過 4 條</title></rect>
+<line class="tick" x1="472.0" y1="60" x2="472.0" y2="92"/>
+<text class="lbl" x="472.0" y="104" text-anchor="middle">沒過 <tspan class="numt">4</tspan></text>
+<rect class="c-none" x="476.0" y="30" width="222.0" height="28" rx="4"><title>還沒碰 112 條</title></rect>
+<text class="lbl" x="588.0" y="82" text-anchor="middle">還沒碰 <tspan class="numt">112</tspan></text>
+<text class="small" x="588.0" y="102" text-anchor="middle">潛伏 47・死碼 62・正在影響 2・改不到 1</text>
+<text class="small" x="20" y="20">代理核心問題總表 340 條（截至 2026-10-26 16:30；分類由程式從問題總表＋修改紀錄算出）</text>
+<text class="lbl" x="20" y="128">正在影響運作的 120 條裡，118 條已經動手，還沒碰 2 條。</text>
 </svg></div><figcaption>確定好了＝每天在用的系統的紀錄（log、設定或服務狀態）證明目標真的達到；只在測試副本過、或離線重放過的，一律算觀察期（10/24 照這條把舊帳重新核對過）；觀察期＝已經上線、程式確定有作用，還在量用起來有沒有變好；碼在沒開／只在沙盒＝修法寫好了，但家裡的開關還關著、或只在測試副本，不算觀察期；部分好了＝目標只達到一部分；沒過＝量了沒達標，繼續修；還沒碰＝還沒動手。不會把「做了」算成「修好了」。</figcaption></figure></div></details>
 </section>
 <section class="main-sec" id="next">
@@ -1058,7 +1058,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <blockquote class="why">
             <p>這些 agent 是要長期使用的。記憶一旦丟了，就不是同一個 agent 了；所以記憶不能丟，也不能因為廠商下架、額度用完或漲價就被關掉。後面每一個工程決定都從這裡出發：要本地化、要把記憶保住、改核心之前一定先在沙盒試過。</p>
           </blockquote>
-          <p>每個角色有自己的記憶庫、個性和情緒狀態。每一輪對話都會先撈出相關的記憶，回覆之後再把這段對話寫回去，所以角色記得之前聊過什麼。會影響角色行為的修改，先評估影響、確認過才動：目前登記的 340 個問題裡，還沒改的 113 個中有 15 個標成「改之前要先評估對 agent 的影響」。</p>
+          <p>每個角色有自己的記憶庫、個性和情緒狀態。每一輪對話都會先撈出相關的記憶，回覆之後再把這段對話寫回去，所以角色記得之前聊過什麼。會影響角色行為的修改，先評估影響、確認過才動：目前登記的 340 個問題裡，還沒改的 112 個中有 14 個標成「改之前要先評估對 agent 的影響」。</p>
         </div>
       </details>
 
@@ -1605,10 +1605,10 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <p><b>進度（截至 2026-10-25 05:12，照修改紀錄與問題總表）</b></p>
           <div class="stats">
             <div class="stat"><b>282</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
-            <div class="stat"><b>16</b><span>次更新到每天在用的系統，每次先在測試副本驗過、都留還原快照</span></div>
-            <div class="stat"><b>47</b><span>個問題確定好了（另 126 個觀察期、43 個部分好了）</span></div>
+            <div class="stat"><b>17</b><span>次更新到每天在用的系統，每次先在測試副本驗過、都留還原快照</span></div>
+            <div class="stat"><b>47</b><span>個問題確定好了（另 127 個觀察期、43 個部分好了）</span></div>
           </div>
-          <p>「觀察期」是修改已經上線、程式確定有作用，正在量用起來有沒有比較好；4 個量了沒過，繼續修；還沒碰的 113 個多數是潛伏問題和死碼。因為每一項都要求分層驗收，這些才分得出來，不會全部被算成「修好了」。</p>
+          <p>「觀察期」是修改已經上線、程式確定有作用，正在量用起來有沒有比較好；4 個量了沒過，繼續修；還沒碰的 112 個多數是潛伏問題和死碼。因為每一項都要求分層驗收，這些才分得出來，不會全部被算成「修好了」。</p>
         </div>
       </details>
 
