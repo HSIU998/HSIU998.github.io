@@ -428,7 +428,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <body>
 <a class="skip" href="#main">跳到主要內容</a>
 <div class="wrap" id="top">
-<nav class="sitenav" aria-label="作品集分頁"><a href="index.html">首頁</a><a href="fae.html">設備／FAE</a><a href="system.html" aria-current="page">本地 AI 系統</a><a href="animation.html">AI 動畫</a><a href="worldsim.html">世界樹</a></nav>
+<nav class="sitenav" aria-label="作品集分頁"><a href="index.html">首頁</a><a href="fae.html">設備／FAE</a><a href="system.html" aria-current="page">本地 AI 系統</a><a href="devlog.html">開發日誌</a><a href="animation.html">AI 動畫</a><a href="worldsim.html">世界樹</a></nav>
 <main id="main">
 <div class="pagehead" id="system-top"><span class="label">Local AI system</span><h1>本地 AI 系統</h1>
 <p class="lead">個人專案：長期記憶多代理系統。程式由 AI 撰寫；定方向、寫規格和驗收標準、拆任務、驗收與上線決定由我負責。</p></div>
@@ -907,12 +907,12 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <text class="small" x="40" y="16">2026 年，程式註解裡標了日期的修改記號（同一行只算一次）</text>
 </svg></div><figcaption>帳本是 10/21 才開始記的；在那之前，修改是寫在程式註解裡、標了日期的記號。這裡只算家裡核心程式（不含備份、虛擬環境、一次性工具）的註解，同一行只算一次，共 869 個；拿 7/12～8/21 對照開發歷程寫的「約 540 個」，這次算出 505 個。另外 2 月的版本紀錄有 156 次提交（之後到 10 月才又交進版本紀錄）。只有數量，不放內容。</figcaption></figure></div></details>
   <div class="stats">
-    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；每天在用的系統已更新 17 次，每次先在測試副本驗過、留還原快照</span></div>
+    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；每天在用的系統正式更新 14 次、另補做 3 次，每次先在測試副本驗過、留還原快照（共 17 份）</span></div>
     <div class="stat"><b>0</b><span>筆每天在用的系統寫入：測試期間守門程式擋下 17 次寫入、9 次碰正式服務</span></div>
   </div>
   <details class="basis"><summary>這兩個數字的依據</summary><div>
     <span>340：問題總表（截至 2026-10-26 16:30），2026-10-21 從 118 份子系統藍圖逐條抽出第一版，之後新發現的陸續登記；每個問題都有編號、追得回它出自哪一份藍圖。還沒碰的 112 條裡，89 條可以直接改、14 條標「改之前要先評估對 agent 的影響」、9 條等我裁決。世界模擬引擎的 93 條另外登記，不在這 340 條裡（合計 433）。</span>
-    <span>17 次：照每次更新前留的還原快照數，2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29、23:21，10-25 04:26、07:44、23:49；每一次都先留還原快照。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
+    <span>17 份：照每次更新前留的還原快照數；其中 14 次是照編號算的正式更新（第 1～14 次），3 次是不另編號的補做（例如換向量服務、退回後重做），2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29、23:21，10-25 04:26、07:44、23:49；每一次都先留還原快照。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
     <span>0 筆：測試副本的守門紀錄，2026-10-21 08:17 到 10-22 06:09 之間，擋下寫入 17 次、碰正式服務 9 次、啟動正式行程 3 次，放行的正式寫入 0 次。</span>
   </div></details>
   <p class="caption">服務重開後走哪條路、多快就緒（燈全綠但用起來不對那次），寫在<a href="fae.html#a-cases">設備／FAE 頁的異常處理紀錄</a>。</p><details class="basis"><summary>全部 340 條的六類（依據）</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 140" role="img" aria-labelledby="t3 d3">
@@ -1140,7 +1140,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
       <span class="label">附錄 5 · History</span>
       <h2>開發歷程 2024–2026</h2>
     </header>
-    <p class="caption">里程碑一張表；完整紀錄（每一條有日期和依據）摺在下面，點開才看。2024～2025 的條目取自平台時期的原始對話紀錄，只取架構與做法上的轉折。</p>
+    <p class="caption">里程碑一張表；完整紀錄（每一條有日期和依據）摺在下面，點開才看。2024～2025 的條目取自平台時期的原始對話紀錄，只取架構與做法上的轉折。每週的工程紀錄在<a href="devlog.html">開發日誌</a>。</p>
     <div class="tablewrap">
       <table>
         <thead><tr><th>時間</th><th>里程碑</th></tr></thead>
@@ -1164,7 +1164,8 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <tr><td class="when">2026-10-13</td><td>改變做法：停下來先把整套系統畫成工程藍圖，再修。</td></tr>
           <tr><td class="when">2026-10-19</td><td>定下「換嘴不換人」；程式代撈記憶上線（16／16 執行）。</td></tr>
           <tr><td class="when">2026-10-21</td><td>代理核心藍圖 100%：214 檔、76,415 行，登記 286 個問題、11 份修復方案。</td></tr>
-          <tr><td class="when">2026-10-22～23</td><td>四個階段的修復：每天在用的系統更新 12 次、修復 192 項、問題總表 430 條、五類驗收；修復流程改成派工單→並行施工→獨立驗收；世界模擬藍圖也畫到 100%。</td></tr>
+          <tr><td class="when">2026-10-22～23</td><td>四個階段的修復：每天在用的系統正式更新 9 次（另補做 3 次）、修復 192 項、問題總表 430 條、五類驗收；修復流程改成派工單→並行施工→獨立驗收；世界模擬藍圖也畫到 100%。</td></tr>
+          <tr><td class="when">2026-10-24～25</td><td>每天在用的系統再正式更新 5 次（第 10～14 次；連 3 次補做共 17 份還原快照）；驗收分類多一類「碼在沒開／只在沙盒」。10-26 起進入觀察期。</td></tr>
           <tr><td class="when">2027 初</td><td>新模型伺服器到貨：核心不搬、只換嘴，兩把尺過了才切。</td></tr>
         </tbody>
       </table>
@@ -1231,9 +1232,9 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <div class="ev-row key"><span class="when">2026-10-21</span><span>代理核心的藍圖 100%：214 個檔、76,415 行，登記 286 個問題，整理成 11 份修復方案。</span></div>
           <div class="ev-row"><span class="when">2026-10-22</span><span>第一批、第二批各 20 項修復，先在沙盒副本裡驗證，再上線每天在用的系統。</span></div>
           <div class="ev-row"><span class="when">2026-10-22</span><span>試換說話的模型，兩小時內換回；A/B 找出主因是上下文（見附錄 4）。</span></div>
-          <div class="ev-row"><span class="when">2026-10-22～23</span><span>第三、第四階段（到 10/23 早上）：每天在用的系統再更新 4 次，每次先過沙盒整輪（最近一次 53／53 輪、0 錯）。修改紀錄累計 122 項；驗收分類改成五類：確定好了、觀察期、部分好了、沒過、還沒碰。</span></div>
+          <div class="ev-row"><span class="when">2026-10-22～23</span><span>第三、第四階段（到 10/23 早上）：每天在用的系統再正式更新 4 次，每次先過沙盒整輪（最近一次 53／53 輪、0 錯）。修改紀錄累計 122 項；驗收分類改成五類：確定好了、觀察期、部分好了、沒過、還沒碰。</span></div>
           <div class="ev-row key"><span class="when">2026-10-23</span><span>世界模擬引擎的藍圖也畫到 100%：31,812 行，登記 85 條問題；當初的設計說法照實改寫（見附錄 3）。</span></div>
-          <div class="ev-row key"><span class="when">2026-10-23 晚</span><span>第四階段收尾：17 個修改包先各自在測試副本驗過，合併後閉環檢查紅燈 0，21:42 第 12 次更新每天在用的系統，更新前留還原快照。修改紀錄累計 192 項；問題總表 430 條（代理核心 337、世界模擬 93）。</span></div>
+          <div class="ev-row key"><span class="when">2026-10-23 晚</span><span>第四階段收尾：17 個修改包先各自在測試副本驗過，合併後閉環檢查紅燈 0，21:42 第 9 次正式更新每天在用的系統，更新前留還原快照。修改紀錄累計 192 項；問題總表 430 條（代理核心 337、世界模擬 93）。</span></div>
           <div class="ev-row"><span class="when">2026-10-23 晚</span><span>問題集改由程式從問題總表＋修改紀錄自動算出、不手改：可直接改 139 條、改前要先評估對 agent 的影響 14 條、等決策 9 條。</span></div>
           <div class="ev-row"><span class="when">2026-10-23 晚</span><span>修復流程改成「派工單 → 並行施工 → 獨立驗收」：一包 4 項，3 個施工代理與 1 個驗收代理並行；交件只收派工單列的檔案，多動的不收。下一包（28 條死碼）派工單先寫好，等這包併入才開。</span></div>
           <div class="ev-row"><span class="when">2026-10-23 晚</span><span>整套系統重開：停機前先逐一通知 9 個服務存檔，9 個都回報完成才關；重開後逐一驗證 8 個 agent 的記憶連續性，8／8 通過。</span></div>
@@ -1605,7 +1606,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <p><b>進度（截至 2026-10-25 05:12，照修改紀錄與問題總表）</b></p>
           <div class="stats">
             <div class="stat"><b>282</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
-            <div class="stat"><b>17</b><span>次更新到每天在用的系統，每次先在測試副本驗過、都留還原快照</span></div>
+            <div class="stat"><b>17</b><span>份還原快照（14 次正式更新＋3 次補做），每次都先在測試副本驗過</span></div>
             <div class="stat"><b>47</b><span>個問題確定好了（另 127 個觀察期、43 個部分好了）</span></div>
           </div>
           <p>「觀察期」是修改已經上線、程式確定有作用，正在量用起來有沒有比較好；4 個量了沒過，繼續修；還沒碰的 112 個多數是潛伏問題和死碼。因為每一項都要求分層驗收，這些才分得出來，不會全部被算成「修好了」。</p>

@@ -1,0 +1,490 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="description" content="鄭孟修：帶著 AI 做出並維運本地多代理系統；半導體與自動化設備現場背景。">
+<title>開發日誌｜鄭孟修</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: equipment nameplate header → architecture as the centerpiece (expandable) → machine → field reports (異常處理單) → channel → experience */
+:root {
+  --bg: #f3f5f7;
+  --panel: #ffffff;
+  --ink: #17202a;
+  --muted: #5b6875;
+  --line: #d5dce3;
+  --steel: #2f4a63;
+  --lamp: #c77a12;
+  --ok: #2e7d4f;
+  --leaf: #2f6b52;
+  --draft-bg: #fff4d6;
+  --draft-ink: #7a5300;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --panel: #18202a; --ink: #e6ebf0; --muted: #9aa8b5; --line: #2c3946;
+    --steel: #8fb3d4; --lamp: #e9a13b; --ok: #5cc18a; --leaf: #6fbf98; --draft-bg: #3a2f12; --draft-ink: #f3cf7a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --panel: #18202a; --ink: #e6ebf0; --muted: #9aa8b5; --line: #2c3946;
+  --steel: #8fb3d4; --lamp: #e9a13b; --ok: #5cc18a; --leaf: #6fbf98; --draft-bg: #3a2f12; --draft-ink: #f3cf7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--steel); }
+a:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); }
+.label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* draft markers */
+.draft { background: var(--draft-bg); color: var(--draft-ink); border-radius: 3px; padding: 0 5px; font-size: .9em; }
+body.clean .draft-only { display: none; }
+body.clean .draft { background: transparent; color: inherit; padding: 0; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; font-size: 14px; color: var(--muted); }
+.toolbar label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+
+/* nameplate */
+.plate { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 28px; }
+.plate h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 900; letter-spacing: .02em; }
+.plate .role { font-size: 18px; font-weight: 500; color: var(--steel); margin-top: 6px; }
+.plate .summary { margin-top: 16px; max-width: 60ch; }
+.plate dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; align-content: start; }
+.plate dt { font-family: var(--font-mono); color: var(--muted); font-size: 12px; letter-spacing: .06em; padding-top: 2px; }
+.plate dd { margin: 0; }
+@media (max-width: 640px) { .plate { grid-template-columns: 1fr; padding: 20px; } }
+
+section { display: flex; flex-direction: column; gap: 18px; }
+section > header { display: flex; flex-direction: column; gap: 4px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+section > header h2 { font-size: 22px; font-weight: 700; }
+
+/* two-layer architecture diagram */
+.layers { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.tree { border: 2px solid var(--leaf); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.tree > .name { font-weight: 700; color: var(--leaf); }
+.tree-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .tree-parts { grid-template-columns: 1fr; } }
+.part { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+.part b { font-size: 15px; }
+.cores { border: 2px solid var(--steel); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.cores > .name { font-weight: 700; color: var(--steel); }
+.family { display: flex; flex-wrap: wrap; gap: 8px; }
+.family span { border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: 15px; background: var(--panel); }
+.core-inner { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--muted); }
+.core-inner span { border: 1px dashed var(--line); border-radius: 4px; padding: 2px 8px; }
+.caption { font-size: 14px; color: var(--muted); }
+
+/* expandable deep-dive */
+.deep { display: flex; flex-direction: column; gap: 10px; }
+.deep details { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.deep summary { cursor: pointer; list-style: none; padding: 14px 18px; display: grid; grid-template-columns: 1.6em 1fr auto; gap: 12px; align-items: baseline; }
+.deep summary::-webkit-details-marker { display: none; }
+.deep summary .no { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.deep summary .t { font-weight: 700; }
+.deep summary .t small { display: block; font-weight: 400; color: var(--muted); font-size: 14px; }
+.deep summary .chev { font-family: var(--font-mono); color: var(--steel); transition: transform .15s; }
+.deep details[open] summary .chev { transform: rotate(90deg); }
+.deep details[open] summary { border-bottom: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { .deep summary .chev { transition: none; } }
+.deep .body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.deep .body ul, .deep .body ol { margin: 0; padding-left: 1.3em; }
+/* code panels nested inside .deep must not inherit the 3-column summary grid */
+.deep details.code > summary { display: block; padding: 6px 10px; }
+.deep details.code > summary::before { content: "▸ "; }
+.deep details.code[open] > summary::before { content: "▾ "; }
+.why { margin: 0; padding: 12px 16px; border-left: 3px solid var(--lamp); background: color-mix(in srgb, var(--lamp) 7%, transparent); }
+.principles { display: grid; gap: 8px; }
+.principle { display: grid; grid-template-columns: 2.2em 1fr; gap: 10px; align-items: baseline; }
+.principle .n { font-family: var(--font-mono); color: var(--steel); font-weight: 500; }
+.principle b { display: block; }
+.principle span.d { color: var(--muted); font-size: 15px; }
+.chain { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; }
+.chain .step { border: 1px solid var(--line); border-radius: 4px; padding: 3px 9px; }
+.chain .to { color: var(--muted); font-family: var(--font-mono); }
+.blocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 560px) { .blocks { grid-template-columns: 1fr; } }
+.block { border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font-size: 14px; }
+.block b { font-size: 15px; }
+.block .k { font-family: var(--font-mono); color: var(--muted); font-size: 12px; margin-right: 6px; }
+.bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.bar > div { min-width: 2px; }
+.seg-pre { background: var(--steel); }
+.seg-distill { background: color-mix(in srgb, var(--steel) 65%, var(--panel)); }
+.seg-assoc { background: color-mix(in srgb, var(--steel) 40%, var(--panel)); }
+.seg-tools { background: color-mix(in srgb, var(--steel) 22%, var(--panel)); }
+.seg-gen { background: var(--lamp); }
+.seg-post { background: var(--muted); }
+.seg-live { background: #c0392b; }
+.seg-mine { background: var(--lamp); }
+.seg-dead { background: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .stats { grid-template-columns: 1fr; } }
+.stat { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; }
+.stat b { display: block; font-family: var(--font-mono); font-size: 22px; font-variant-numeric: tabular-nums; color: var(--steel); }
+.stat span { font-size: 13px; color: var(--muted); }
+.marks { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); }
+.pill.plan { color: var(--lamp); }
+.timeline-mini { display: flex; flex-direction: column; gap: 0; }
+.tm { display: grid; grid-template-columns: 6.5em 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+.tm:last-child { border-bottom: 0; }
+.tm .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 2px; }
+
+/* machine */
+.arch { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.node { border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.node .name { font-weight: 700; }
+.node .spec { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.host { border: 2px solid var(--steel); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.host > .name { font-weight: 700; color: var(--steel); }
+.units { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .units { grid-template-columns: 1fr; } }
+.arrow { text-align: center; font-family: var(--font-mono); color: var(--muted); font-size: 13px; }
+.planned { border-style: dashed; }
+
+/* incident sheets */
+.cases { display: flex; flex-direction: column; gap: 18px; }
+.sheet { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sheet-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.sheet-head h3 { font-size: 18px; }
+.sheet-head .meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.sheet-body { display: grid; grid-template-columns: 7.5em 1fr; }
+.sheet-body > div { padding: 10px 18px; border-bottom: 1px solid var(--line); min-width: 0; }
+.sheet-body > div:nth-last-child(-n+2) { border-bottom: 0; }
+.sheet-body .k { font-weight: 700; color: var(--steel); background: color-mix(in srgb, var(--steel) 6%, transparent); }
+@media (max-width: 560px) {
+  .sheet-body { grid-template-columns: 1fr; }
+  .sheet-body .k { border-bottom: 0; padding-bottom: 0; background: transparent; }
+}
+
+/* experience */
+.timeline { display: flex; flex-direction: column; }
+.job { display: grid; grid-template-columns: 9em 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.job:last-child { border-bottom: 0; }
+.job .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 3px; }
+.job h3 { font-size: 17px; }
+.job ul { margin: 6px 0 0; padding-left: 1.2em; }
+@media (max-width: 560px) { .job { grid-template-columns: 1fr; gap: 4px; } }
+
+.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .skills { grid-template-columns: 1fr; } }
+.skill { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; }
+.skill h3 { font-size: 15px; margin-bottom: 6px; }
+.skill ul { margin: 0; padding-left: 1.2em; font-size: 15px; }
+
+.channel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.expand-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.btn { font: inherit; font-size: 14px; color: var(--steel); background: var(--panel); border: 1px solid var(--steel); border-radius: 4px; padding: 4px 12px; cursor: pointer; }
+.btn:hover { background: color-mix(in srgb, var(--steel) 10%, var(--panel)); }
+.btn:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+
+/* 30-second brief */
+.brief { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--steel); border-radius: 6px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.brief-row { display: grid; grid-template-columns: 4.5em 1fr; gap: 12px; }
+.brief-row .bk { font-weight: 700; color: var(--steel); }
+@media (max-width: 480px) { .brief-row { grid-template-columns: 1fr; gap: 0; } }
+
+/* methods */
+.methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .methods { grid-template-columns: minmax(0, 1fr); } }
+.method { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.method h3 { font-size: 16px; }
+.method p { font-size: 15px; }
+.method .whyline { font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+
+/* lessons + logs */
+.lessons { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.lesson { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.lesson:last-child { border-bottom: 0; }
+.lesson span { color: var(--muted); font-size: 15px; }
+.logs-title { font-size: 17px; margin-top: 8px; }
+pre.log { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; overflow-x: auto; white-space: pre; color: var(--ink); }
+
+/* module drill-down inside the eight blocks */
+.mods { display: flex; flex-direction: column; gap: 8px; }
+.wt-mods { background: var(--panel); }
+details.code { border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
+details.code > summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--steel); padding: 6px 10px; }
+details.code > summary::marker { color: var(--muted); }
+details.code[open] > summary { border-bottom: 1px solid var(--line); }
+details.code pre.log { border: 0; border-radius: 0 0 4px 4px; font-size: 12px; }
+.mod > details.code { margin: 0 12px 12px; }
+.mod-note { padding: 0 12px 12px; }
+.mod-note code { font-family: var(--font-mono); font-size: 12px; }
+.mod { border: 1px solid var(--line); border-radius: 4px; }
+.mod > summary { cursor: pointer; list-style: none; padding: 10px 12px; display: grid; grid-template-columns: 1.4em auto 1fr; gap: 4px 10px; align-items: baseline; }
+.mod > summary::-webkit-details-marker { display: none; }
+.mod > summary .k { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.mod > summary b { font-size: 15px; }
+.mod > summary .sub { font-size: 13px; color: var(--muted); min-width: 0; }
+@media (max-width: 560px) { .mod > summary { grid-template-columns: 1.4em 1fr; } .mod > summary .sub { grid-column: 2; } }
+.mod[open] > summary { border-bottom: 1px solid var(--line); }
+.modlist { display: grid; grid-template-columns: max-content max-content 1fr; gap: 6px 14px; padding: 10px 12px; font-size: 14px; overflow-x: auto; }
+.modlist code { font-family: var(--font-mono); font-size: 13px; color: var(--steel); white-space: nowrap; }
+.modlist .ln { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.modlist span:not(.ln) { min-width: 0; }
+@media (max-width: 560px) {
+  .modlist { grid-template-columns: 1fr auto; }
+  .modlist span:not(.ln) { grid-column: 1 / -1; color: var(--muted); padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+}
+
+/* three layers: remember / body / voice */
+.stack3 { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.layer { border-radius: 6px; padding: 12px 14px; display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; align-items: start; }
+@media (max-width: 560px) { .layer { grid-template-columns: 1fr; gap: 4px; } }
+.layer .ln { font-weight: 700; }
+.layer .ln small { display: block; font-weight: 400; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.layer.l1 { border: 2px solid var(--steel); }
+.layer.l2 { border: 2px solid color-mix(in srgb, var(--steel) 55%, var(--panel)); }
+.layer.l3 { border: 2px dashed var(--lamp); }
+.mouths { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mouths span { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 8px; color: var(--muted); }
+.mouths span.now { color: var(--lamp); border-color: var(--lamp); }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-family: var(--font-mono); letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .evidence { grid-template-columns: 1fr; } }
+.ev { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.ev b.big { font-family: var(--font-mono); font-size: 22px; color: var(--steel); font-variant-numeric: tabular-nums; }
+.limits { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--muted); border-radius: 6px; padding: 14px 16px; }
+.limits ul { margin: 6px 0 0; padding-left: 1.3em; }
+
+/* history */
+.phases { display: flex; flex-direction: column; gap: 14px; }
+.phase { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.phase-head { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; padding: 12px 16px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--steel) 5%, transparent); }
+.phase-head h3 { font-size: 17px; }
+.phase-head .span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.ev-list { display: flex; flex-direction: column; }
+.ev-row { display: grid; grid-template-columns: 6.8em 1fr; gap: 12px; padding: 9px 16px; border-bottom: 1px solid var(--line); font-size: 15px; }
+.ev-row:last-child { border-bottom: 0; }
+.ev-row .when { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 2px; }
+.ev-row.key { background: color-mix(in srgb, var(--lamp) 6%, transparent); }
+@media (max-width: 480px) { .ev-row { grid-template-columns: 1fr; gap: 0; } }
+
+.checklist { background: var(--draft-bg); color: var(--draft-ink); border-radius: 6px; padding: 18px 20px; }
+.checklist h2 { font-size: 18px; margin-bottom: 8px; }
+.checklist ol { margin: 0; padding-left: 1.3em; }
+.checklist li.done { opacity: .6; }
+
+/* page one: 30 seconds */
+.onepage { display: flex; flex-direction: column; gap: 18px; }
+.oneliner { font-size: 17px; max-width: 62ch; }
+.oneliner b { color: var(--steel); }
+.highlights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .highlights { grid-template-columns: 1fr; } }
+.hl { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--lamp); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hl .label { color: var(--lamp); }
+.hl h3 { font-size: 17px; }
+.hl p { font-size: 15px; }
+.hl .res { font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+.hl .res b { color: var(--ink); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.hl a.more { font-size: 13px; margin-top: auto; }
+.repo { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--steel); border-radius: 6px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 15px; }
+.repo .k { font-weight: 700; color: var(--steel); }
+.honest { font-size: 14px; color: var(--muted); }
+.cando { font-size: 15px; color: var(--ink); }
+.cando .note, .hl .note { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.hl p.note { margin: 0; }
+
+/* appendix */
+.appendix-head { border-top: 4px double var(--line); padding-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+.appendix-head h2 { font-size: 20px; }
+.toc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px; margin: 0; padding: 0; list-style: none; font-size: 15px; }
+@media (max-width: 560px) { .toc { grid-template-columns: 1fr; } }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.toc .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: inline-block; width: 2.2em; }
+.backtop { font-size: 13px; align-self: flex-end; }
+@media print { .toolbar, .backtop, .checklist { display: none; } }
+
+/* evidence: how each number was measured */
+details.basis { font-size: 13px; color: var(--muted); }
+details.basis > summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--steel); list-style: none; }
+details.basis > summary::-webkit-details-marker { display: none; }
+details.basis > summary::before { content: "▸ "; }
+details.basis[open] > summary::before { content: "▾ "; }
+details.basis > div { margin-top: 4px; padding: 6px 10px; border-left: 2px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+details.basis code { font-family: var(--font-mono); font-size: 12px; }
+
+/* print: light colors, one-column nameplate, every panel opened, nothing split across pages */
+@page { size: A4; margin: 14mm 12mm 16mm; }
+@media print {
+  :root:not([data-print]), :root[data-theme="dark"] {
+    --bg: #ffffff; --panel: #ffffff; --ink: #17202a; --muted: #5b6875; --line: #d5dce3;
+    --steel: #2f4a63; --lamp: #c77a12; --ok: #2e7d4f; --leaf: #2f6b52; --draft-bg: #fff4d6; --draft-ink: #7a5300;
+    color-scheme: light;
+  }
+  body { background: #fff; font-size: 10.5pt; line-height: 1.6; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .wrap { max-width: none; gap: 22px; }
+  .plate { grid-template-columns: 1fr; gap: 14px; padding: 18px 20px; }
+  .plate .summary { max-width: none; }
+  .plate dl { grid-template-columns: 6.5em 1fr; }
+  details::details-content { content-visibility: visible; }
+  .deep summary .chev, .expand-bar, details.code > summary::before, details.basis > summary::before { display: none; }
+  .tablewrap, .modlist { overflow: visible; }
+  table { min-width: 0; font-size: 10pt; }
+  pre.log { white-space: pre-wrap; overflow-wrap: anywhere; overflow: visible; font-size: 9pt; }
+  h1, h2, h3, section > header, summary, .phase-head, .sheet-head { break-after: avoid; }
+  tr, .tm, .ev-row, .job, .lesson, .hl, .stat, .method, .ev, .skill, .node, .part, .principle, .block,
+  .brief-row, .layer, .why, .sheet-body > div, .modlist > *, li, p, pre.log { break-inside: avoid; }
+}
+
+/* ---- split-site additions ---- */
+.sitenav { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; margin-top: -16px; }
+.stats { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.sitenav a { white-space: nowrap; text-decoration: none; color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 14px; }
+.sitenav a[aria-current="page"] { background: var(--panel); color: var(--ink); border: 1px solid var(--line); font-weight: 700; }
+.sitenav a:hover { color: var(--ink); }
+.valueline { font-size: 17px; font-weight: 700; color: var(--ink); border-left: 3px solid var(--lamp); padding-left: 10px; margin: 6px 0 2px; }
+a.pdf { font-weight: 700; }
+.pagehead { display: flex; flex-direction: column; gap: 8px; }
+.pagehead h1 { font-size: 30px; }
+.pagehead .lead { color: var(--muted); }
+.cards4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 600px) { .cards4 { grid-template-columns: 1fr; } }
+.card4 { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--ink); }
+.card4:hover { border-color: var(--steel); }
+.card4 h2 { font-size: 19px; }
+.card4 p { color: var(--muted); font-size: 15px; flex: 1; }
+.card4 .go { color: var(--steel); font-weight: 700; font-size: 15px; }
+figure.fig { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+figure.fig .figwrap { overflow-x: auto; }
+figure.fig figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.fig-svg { display: block; width: 100%; min-width: 600px; height: auto; font-family: var(--font-body); }
+.fig-svg .lane { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.fig-svg .small { font-size: 12px; fill: var(--muted); }
+.fig-svg .inbar { font-size: 11px; fill: #fff; font-weight: 700; }
+.fig-svg .bt { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.fig-svg .bs { font-size: 12px; fill: var(--muted); }
+.fig-svg .bs.em { fill: var(--ink); font-weight: 500; }
+.fig-svg .lbl { font-size: 13px; fill: var(--ink); }
+.fig-svg .numt { font-family: var(--font-mono); font-weight: 700; }
+.fig-svg .box { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+.fig-svg .box.strong { stroke: var(--steel); stroke-width: 1.6; }
+.fig-svg .box.soft { fill: var(--panel); stroke-dasharray: 4 3; }
+.fig-svg .cell { fill: var(--panel); stroke: var(--steel); stroke-width: 1.2; }
+.fig-svg .flow { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+.fig-svg .arrowhead { fill: var(--muted); }
+.fig-svg .axis, .fig-svg .tick { stroke: var(--line); stroke-width: 1.2; }
+.fig-svg .bar-muted { fill: var(--muted); opacity: .55; }
+.fig-svg .bar-steel { fill: var(--steel); }
+.fig-svg .bar-leaf, .fig-svg .bar-leaf-arrow { fill: var(--leaf); }
+.fig-svg .c-ok { fill: #2e7d4f; } .fig-svg .c-obs { fill: #3a6ea5; } .fig-svg .c-part { fill: #c98a12; } .fig-svg .c-fail { fill: #b8336a; }
+.fig-svg .c-none { fill: var(--panel); stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fig-svg .c-ok { fill: #3fa673; } :root:not([data-theme="light"]) .fig-svg .c-obs { fill: #4a88d6; } :root:not([data-theme="light"]) .fig-svg .c-part { fill: #bc8410; } :root:not([data-theme="light"]) .fig-svg .c-fail { fill: #d24c78; } }
+:root[data-theme="dark"] .fig-svg .c-ok { fill: #3fa673; } :root[data-theme="dark"] .fig-svg .c-obs { fill: #4a88d6; } :root[data-theme="dark"] .fig-svg .c-part { fill: #bc8410; } :root[data-theme="dark"] .fig-svg .c-fail { fill: #d24c78; }
+details.ledger table { font-size: 13px; }
+details.ledger td:first-child, details.ledger td:nth-child(2) { white-space: nowrap; font-family: var(--font-mono); font-size: 12px; }
+details.ledger th, details.ledger td:nth-child(4), details.ledger td:nth-child(5) { white-space: nowrap; }
+details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
+.anim-list { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 8px; }
+@media print { .sitenav { display: none; } .fig-svg { min-width: 0; } figure.fig .figwrap { overflow: visible; } }
+
+.draftbar { background: var(--draft-bg); color: var(--draft-ink); border-radius: 6px; padding: 8px 14px; font-size: 14px; }
+.filters { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.frow { display: grid; grid-template-columns: 3em minmax(0, 1fr); gap: 10px; align-items: center; min-width: 0; }
+.flabel { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.seg { display: inline-flex; justify-self: start; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
+.yr { font: inherit; font-family: var(--font-mono); font-size: 14px; color: var(--muted); background: transparent; border: 0; border-left: 1px solid var(--line); padding: 4px 14px; cursor: pointer; }
+.yr:first-child { border-left: 0; }
+.yr[aria-pressed="true"] { background: var(--steel); color: var(--panel); font-weight: 500; }
+.yr:focus-visible, .ysel:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+.ysel { justify-self: start; font: inherit; font-family: var(--font-mono); font-size: 14px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+.mrows { min-width: 0; }
+.chips { display: flex; gap: 6px; }
+.chips.months { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.chips.months .chip { flex: none; white-space: nowrap; }
+.chips.months[hidden], details.week[hidden] { display: none; }
+.chip { font: inherit; font-size: 14px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; cursor: pointer; }
+.chip[aria-pressed="true"] { color: var(--ink); border-color: var(--steel); font-weight: 700; }
+.chip:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+.weeks { display: flex; flex-direction: column; gap: 10px; }
+details.week { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+details.week > summary { cursor: pointer; list-style: none; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+details.week > summary::-webkit-details-marker { display: none; }
+details.week > summary::before { content: "▸"; color: var(--steel); font-family: var(--font-mono); }
+details.week[open] > summary::before { content: "▾"; }
+details.week[open] > summary { border-bottom: 1px solid var(--line); }
+.wk { font-family: var(--font-mono); font-weight: 500; }
+.cnt { margin-left: auto; font-size: 13px; color: var(--muted); }
+ol.entries { list-style: none; margin: 0; padding: 0; }
+ol.entries li { display: grid; grid-template-columns: 6.8em 1fr; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); min-width: 0; }
+ol.entries li:last-child { border-bottom: 0; }
+ol.entries .d { font-family: var(--font-mono); font-size: 13px; color: var(--muted); padding-top: 2px; }
+ol.entries .tt { display: block; font-size: 15.5px; }
+ol.entries p { font-size: 15px; color: var(--ink); overflow-wrap: anywhere; }
+ol.entries .to { color: var(--steel); font-family: var(--font-mono); }
+ol.entries .res { color: var(--ok); }
+ol.entries p.cnote { margin-top: 6px; font-size: 13px; color: var(--muted); border-left: 2px solid var(--line); padding-left: 8px; }
+@media (max-width: 560px) { ol.entries li { grid-template-columns: 1fr; gap: 2px; } }
+@media print { .filters, .draftbar { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+<nav class="sitenav" aria-label="作品集分頁"><a href="index.html">首頁</a><a href="fae.html">設備／FAE</a><a href="system.html">本地 AI 系統</a><a href="devlog.html" aria-current="page">開發日誌</a><a href="animation.html">AI 動畫</a><a href="worldsim.html">世界樹</a></nav>
+<div class="pagehead"><span class="label">Dev log</span><h1>開發日誌</h1>
+<p class="lead">本地 AI 系統的每週工程紀錄。每一條照「找到的問題 → 決定 → 結果」寫；結果只寫量到的，沒量的就寫還沒量。</p></div>
+<p class="honest">九個 agent 一律用代號（例如 agent-WTH）；不放私人對話內容。更早的紀錄（2024-12～2026-05）還在整理。里程碑和整體脈絡在<a href="system.html#a-history">本地 AI 系統・附錄 5 開發歷程</a>。</p>
+<div class="stats"><div class="stat"><b>18</b><span>週有紀錄（2026/06/11～10/28）</span></div><div class="stat"><b>136</b><span>條工程紀錄</span></div></div>
+<div class="filters"><div class="frow"><span class="flabel">年份</span><div class="seg" role="group" aria-label="年份"><button type="button" class="yr" data-y="2026" aria-pressed="true">2026</button></div></div><div class="frow"><span class="flabel">月份</span><div class="mrows"><div class="chips months" data-y="2026" role="group" aria-label="2026 年的月份"><button type="button" class="chip" data-m="all" aria-pressed="true">全年</button><button type="button" class="chip" data-m="10" aria-pressed="false">10 月</button><button type="button" class="chip" data-m="09" aria-pressed="false">9 月</button><button type="button" class="chip" data-m="08" aria-pressed="false">8 月</button><button type="button" class="chip" data-m="07" aria-pressed="false">7 月</button><button type="button" class="chip" data-m="06" aria-pressed="false">6 月</button></div></div></div></div>
+<div class="weeks"><details class="week" data-y="2026" data-m="10" open><summary><span class="wk">2026/10/22～10/28</span> <span class="pill plan">預覽：最後一天還沒過完</span><span class="cnt">8 條</span></summary><ol class="entries"><li><span class="d">10/22</span><div><b class="tt">驗收報表新增目標與結果欄位</b><p>驗收報表原本只記做了什麼，沒有每刀的最終目標與結果，無法判斷是否真的達成 <span class="to">→</span> 為 28 刀補上目標、量尺、終點、結果與依據，檢查程式新增目標欄位與結果總表，因為每刀都要能對到終點 <span class="to">→</span> <b class="res">結果：</b>過 10、部分 7、只驗了機制 8、沒過 2、觀察中 1；並發現終點清單有缺口，後續補上兩條終點。</p></div></li><li><span class="d">10/22</span><div><b class="tt">索引重建修正與正式部署</b><p>發現索引重建流程會讀到不該存在的備份資料，已移除的資料可能短暫回到索引 <span class="to">→</span> 把備份移出資料目錄，工具改成備份放資料目錄外、關聯名單重跑不重複，並把索引重建修正上正式環境，因為開機重建索引時不該讀回已移除的資料 <span class="to">→</span> <b class="res">結果：</b>正式環境兩次九個 agent 的停機程序 9/9、開機重建索引 0 次、Traceback 0，已移除的資料仍為 0。</p></div></li><li><span class="d">10/22</span><div><b class="tt">每日體檢新增特定用語檢查</b><p>換模型後某個特定用語比例逐日放大，原本每日體檢沒有這項 <span class="to">→</span> 每日體檢新增特定用語檢查，設定基準期、最少則數門檻、黃紅燈門檻與測試，因為模型造成的用語偏移需要被量化 <span class="to">→</span> <b class="res">結果：</b>陰性對照可判紅，換回原模型後比例低於 1%，測試 2/2。</p></div></li><li><span class="d">10/23～10/24</span><div><b class="tt">沙盒守門與連續正式部署</b><p>沙盒可能誤用正式的記憶查詢服務／模型服務，且多批已驗修正待收線 <span class="to">→</span> 新增沙盒守門，要用真服務必須明寫旗標，否則走替代路徑；把一批 agent 核心 runtime 修正與世界模擬引擎前幾步上正式環境，隔天再把一批已定位的運行問題修正上正式環境，因為先隔離測試與正式服務，再分批降低上線風險 <span class="to">→</span> <b class="res">結果：</b>守門後整輪測試 0 錯；兩次部署的九個 agent 停機程序 9/9、服務全起、Traceback 0；第二次部署驗活 BAD 0，問題清單主要運行問題從 8 降到 4；上線觀察期每輪秒數增加，列觀察。</p></div></li><li><span class="d">10/25</span><div><b class="tt">驗證報表新增「已部署但設定未啟用」欄位與第十三次正式部署</b><p>驗收檢查只看程式在不在，無法區分「已部署但開關沒開」與「只在沙盒」 <span class="to">→</span> 檢查程式新增「沒生效」欄位、結果字正規化、開關狀態判斷；把一批已定位的運行問題修正上正式環境，因為避免把「已上線」誤判成「已生效」 <span class="to">→</span> <b class="res">結果：</b>報表能分開顯示；正式部署後九個 agent 停機程序 9/9、一小時驗活 OK 91／BAD 0。</p><p class="cnote">說明：正式更新照編號算（第 1～14 次）；另有 3 次不編號的補做，所以系統頁寫的是 17 份還原快照。</p></div></li><li><span class="d">10/25～10/26</span><div><b class="tt">體檢尺修正與第十四次正式部署</b><p>體檢尺誤判署名行，造成假紅燈；另有一批改動待合併驗證 <span class="to">→</span> 體檢尺加已知清單與署名尾處理，測試 11/11；合併三項改動驗證（全部關閉時等於前一版行為、拆分後互不干擾、實際模型整輪 0 錯）；把七支程式與名單更新正式部署，因為先修正量尺再部署，避免用錯尺判定成敗 <span class="to">→</span> <b class="res">結果：</b>收信八個 agent（九個裡除了寄信的 agent-WTH）8/8 回、九個 agent 停機程序 9/9、服務全起、首次驗活 OK 96／BAD 1（服務日誌尚未出現，與起家兩分鐘同型）、登錄 6 筆＋驗收檢查紅燈 0；一小時後重跑 OK 97／WARN 1／BAD 0，前次唯一 BAD 已解；上線觀察期有一項記憶體用量低於運行尺，僅列警告。</p></div></li><li><span class="d">10/28</span><div><b class="tt">世界模擬引擎建議清單併入問題追蹤表</b><p>一批世界模擬引擎建議清單尚未完整併入問題追蹤表，無法統一追蹤 <span class="to">→</span> 把主體清單併入，這次補 7 列舊問題註記；先在副本跑檢查，紅燈 0 才動原檔，因為避免直接改動追蹤表造成不一致 <span class="to">→</span> <b class="res">結果：</b>改前、副本、改後都紅 0。</p></div></li><li><span class="d">10/28</span><div><b class="tt">開發日誌自動更新腳本</b><p>開發日誌需要每天更新，原本沒有自動補機制 <span class="to">→</span> 新增每日更新腳本，每天固定時間只補上次跑到現在，初稿標示未抽查，一天上限 30 包並寫更新日誌，因為讓日誌更新由程式保證，不靠手動 <span class="to">→</span> <b class="res">結果：</b>腳本已寫好並試跑；正式採用與自動推送尚未定。</p></div></li></ol></details><details class="week" data-y="2026" data-m="10"><summary><span class="wk">2026/10/15～10/21</span><span class="cnt">10 條</span></summary><ol class="entries"><li><span class="d">10/17</span><div><b class="tt">主要對話路徑新增每輪用量紀錄</b><p>主要對話路徑缺少每輪用量紀錄，難以直接觀測 <span class="to">→</span> 在主要對話路徑新增每輪用量紀錄，並重新啟動九個 agent，讓用量可被觀測 <span class="to">→</span> <b class="res">結果：</b>獨立行程驗證每輪輸入 9、輸出 2；實際要有人聊天才會累積；另確認實際壓縮門檻為 100,000，不是程式內的 48,000。</p></div></li><li><span class="d">10/19</span><div><b class="tt">記憶代撈與關係資料上線九個 agent</b><p>需要讓 agent 能用程式輔助撈取記憶與關係資料 <span class="to">→</span> 修改三處程式與啟動設定，將代撈記憶與關係資料上線，並重啟九個 agent <span class="to">→</span> <b class="res">結果：</b>系統自檢全過，八個 agent（九個裡除了 agent-WTH）的自檢 7/8 通過，代撈 16/16；但後續量測發現，代撈在九個裡的 agent-ZY 與負責人的真實對話中 0 次觸發，實際只在自檢信裡運作。</p></div></li><li><span class="d">10/19</span><div><b class="tt">開窗掛鉤載入記憶與 agent 訊息工具帶寄件人脈絡</b><p>工具連線每窗中斷，記憶載入不穩 <span class="to">→</span> 改以開窗掛鉤載入最近 20 條記憶，記憶查詢與寫入改走命令列工具；另把 agent 之間的訊息工具改為帶寄件人脈絡的本機服務介面 <span class="to">→</span> <b class="res">結果：</b>開窗載入已在實際工作窗驗證；訊息紀錄能認出寄件者 agent-WTH。</p></div></li><li><span class="d">10/20</span><div><b class="tt">新增每日自動備份排程</b><p>先前一個月沒有自動備份 <span class="to">→</span> 新增每日自動備份排程，將備份排到外部備份位置 <span class="to">→</span> <b class="res">結果：</b>首次自動備份成功。</p></div></li><li><span class="d">10/20</span><div><b class="tt">記憶代撈篩選收緊</b><p>離線預檢發現繁體詞被切碎，導致不符合條件的記憶被當成「想起來了」放行 <span class="to">→</span> 修正為同一條記憶要同時符合兩個條件才放行，否則跳過，不拿假記憶測試 agent <span class="to">→</span> <b class="res">結果：</b>離線 28/28、活體 16/16。</p></div></li><li><span class="d">10/20</span><div><b class="tt">藍圖盤點加入量測腳本與覆蓋率計數器</b><p>需要盤點完整系統藍圖與問題覆蓋率 <span class="to">→</span> 新增一批量測腳本與覆蓋率計數器，完成前四塊主幹 <span class="to">→</span> <b class="res">結果：</b>覆蓋率 20.7%，記錄 108 個問題；後續逐檔補挖。</p></div></li><li><span class="d">10/20</span><div><b class="tt">本機服務對外連線規則收緊</b><p>安全檢查發現本機服務對外暴露 <span class="to">→</span> 將連線規則改為僅允許內部私有網路連線，並關閉邊緣穿越 <span class="to">→</span> <b class="res">結果：</b>唯讀驗證通過。</p></div></li><li><span class="d">10/21</span><div><b class="tt">補回看門狗開機自動啟動</b><p>看門狗一個月沒有執行 <span class="to">→</span> 補回開機自動啟動設定，讓看門狗隨開機啟動 <span class="to">→</span> <b class="res">結果：</b>開機後第一圈全綠。</p></div></li><li><span class="d">10/21</span><div><b class="tt">沙盒修正提示詞開發註解與因果段開關</b><p>每輪提示詞夾帶開發註解、因果段缺少環境開關，且有一個入口需調整 <span class="to">→</span> 在沙盒移除開發註解、加上因果段的環境開關、調整該入口，另新增提示詞留底（僅沙盒開啟） <span class="to">→</span> <b class="res">結果：</b>兩輪正常、0 次 Traceback、開發註解出現 0 次。</p></div></li><li><span class="d">10/21</span><div><b class="tt">清理待清檔案、切換執行設定與建立副本沙盒</b><p>需要整理待清檔案、切換執行設定並退役舊流程工具 <span class="to">→</span> 清理 279 個待清檔案、把執行設定從舊機器切到新機器、退役一個舊流程工具、建立副本沙盒 <span class="to">→</span> <b class="res">結果：</b>重開後 0 個模組載入錯誤，副本沙盒驗證通過。</p></div></li></ol></details><details class="week" data-y="2026" data-m="10"><summary><span class="wk">2026/10/08～10/14</span><span class="cnt">10 條</span></summary><ol class="entries"><li><span class="d">10/10</span><div><b class="tt">對話時間判定修正</b><p>找到舊間隔線會把非對話事件算進去的問題 <span class="to">→</span> 調整 agent 核心 runtime 的三項時間判定：新增懸空句標記、當下句時間標改按本車道上一句、間隔線只量對話對對話 <span class="to">→</span> 單元測試五情境全過，真實視窗唯讀重放顯示舊間隔線消失；活體尚未重啟。</p></div></li><li><span class="d">10/10</span><div><b class="tt">沙盒模型行為實驗</b><p>為確認模型行為能否上活體，跑兩輪沙盒實驗 <span class="to">→</span> 第一輪未達條件，第二輪用 120b 跑 160 輪、480 次雲端 0 錯；判定該行為不能上活體，相關檢查項單獨起，結果寫入沙盒狀態記錄。</p></div></li><li><span class="d">10/10</span><div><b class="tt">記憶查詢與訊息工具補摘要</b><p>召回重放確認召回機制本身沒壞，但 agent 之間的訊息進視窗時缺摘要 <span class="to">→</span> 把信件摘要帶進視窗、與近 24 小時的小型記憶池合併，並留下回信足跡 <span class="to">→</span> 三封真信實測、測試五題過、既有五情境重跑與編譯檢查過；活體尚未重啟。</p></div></li><li><span class="d">10/12</span><div><b class="tt">狀態抽取沙盒規則修正</b><p>沙盒測試發現狀態抽取會把舊話填進空白 <span class="to">→</span> 改成只准從原句複製片段、由程式驗證片段確實在原句才收 <span class="to">→</span> 7B 不再亂編但準度仍約一半；27B 抓到 11 句真實事實、玩鬧句未誤收、中位 0.6 秒；決定回話不等它，排在回話後背景跑。</p></div></li><li><span class="d">10/12</span><div><b class="tt">模型軌上線與回話順序驗證</b><p>首次在真實環境跑模型軌，需確認抽取不卡對話 <span class="to">→</span> 九個 agent 全部 graceful 重啟（9/9），狀態板 v1.2 模型軌上線 <span class="to">→</span> 真實 6 句對話每句都在回話後才背景抽取，日誌順序正確、沒卡對話；冷啟動 9 秒、熱時 0.9 秒，抓到 1 筆，玩鬧句未誤收。</p></div></li><li><span class="d">10/13</span><div><b class="tt">核心 runtime 主流程藍圖 v0</b><p>核心改動需要先有統一藍圖 <span class="to">→</span> 照程式碼與真實 log 逐格對出主流程 v0，藍圖不抄 log 對話內容，並做本機 27B 盲審 <span class="to">→</span> 驗證題 8/8、過夜五段 16/16、金絲雀 4 錯抓到 2；發現兩處記憶撈取條件問題，依流程在藍圖定版前不動碼。</p></div></li><li><span class="d">10/13</span><div><b class="tt">審查包切包與判分流程</b><p>審查速度受 27B 限制 <span class="to">→</span> 改由 agent-LN 接手，新增審查包切包與判分流程，把未審函式切包、答案不落地 <span class="to">→</span> 產出 22 包、11,264 行，短於 12 行的函式 99 個跳過並記錄；27B 不再當主力，有空再當第二讀者。</p></div></li><li><span class="d">10/13</span><div><b class="tt">第二包審查與藍圖 v0.3</b><p>判完 agent-LN 第二包審查 <span class="to">→</span> 驗證題 85/85、22 包幾分鐘跑完，逐條回碼證實多項問題並影響主流程 7 條；發現部分誤判來自審查包只給片段，決定下一包讓審查者可讀整檔確認定義 <span class="to">→</span> 藍圖升 v0.3，全部還沒動碼，等 v1。</p></div></li><li><span class="d">10/14</span><div><b class="tt">核心 runtime 體檢圖</b><p>核心 runtime 缺少整體盤點 <span class="to">→</span> 用靜態掃描與體檢圖產生器掃 101 個檔、1,618 個函式 <span class="to">→</span> 活 141、靜 1,336、死 108（2,308 行）、斷 33 條、關 5 個環境變數閘；agent-LN 包 03 驗證題 343/344 並證實若干問題；一行碼沒動。</p></div></li><li><span class="d">10/14</span><div><b class="tt">主動意識 2.0 沙盒與記憶盒量測</b><p>知識圖譜把創作故事當事實抽取，且沙盒記憶撈取不足、記憶盒重複與視窗對話副本多 <span class="to">→</span> 修正謂詞與對象黏連的 bug、沙盒 v1 接上人格線與記憶線、啟用向量後端 <span class="to">→</span> 五條念頭 4 說 1 不說，記憶只撈到 0～1 則；設對向量後原盒撈到 8 則；清理副本與停重複寫入待執行，結果還沒量。</p></div></li></ol></details><details class="week" data-y="2026" data-m="10"><summary><span class="wk">2026/10/01～10/07</span><span class="cnt">6 條</span></summary><ol class="entries"><li><span class="d">10/01</span><div><b class="tt">agent 名稱對照與別名比對修正</b><p>從外部入口呼叫 agent-WTH 時叫不到，九個 agent 的服務都在運作但心跳停在舊時間；追查後發現問題在名稱對照只認名冊鍵值或底線後名字，改名後與不同入口送來的名稱對不上 <span class="to">→</span> 在名冊加入別名、修正名稱正規化與別名比對流程，讓不同入口送來的名稱都能對到同一個 agent <span class="to">→</span> 離線驗 30 例全對；端到端真實呼叫尚未驗證，結果還沒量。</p></div></li><li><span class="d">10/02</span><div><b class="tt">問題排查知識庫改為語意查詢與任務順序調整</b><p>原本知識庫偏向整本讀取，難以在流程中快速命中 <span class="to">→</span> 新增語意查詢工具並接入流程，將任務改成先確認症狀、只拿確認的症狀查知識庫、最後才修；全看錯時不准改檔，並加上硬性回合上限 <span class="to">→</span> 離線測試全過，10 題中 9 題可命中、門檻 0.72 可擋無關；但後續真實測試出現一次半對、一次逾時且未遵守檢查規則，需再補硬性上限，實際可用性結果還沒量。</p></div></li><li><span class="d">10/05</span><div><b class="tt">每日備份流程假成功與手動備份</b><p>發現每日備份流程長期只寫 SKIPPED 並回報成功，實際上自 9/20 後沒有新備份 <span class="to">→</span> 先手動複製世界模擬引擎與封存資料到另一顆磁碟，並記錄後續要修備份腳本 <span class="to">→</span> 手動備份完成；備份目的地與腳本修正仍待決定，結果還沒量。</p></div></li><li><span class="d">10/05</span><div><b class="tt">本機模型庫搬遷與環境設定更新</b><p>模型庫原本放在舊磁碟，佔用大量空間 <span class="to">→</span> 將模型庫搬到系統碟、更新模型位置環境設定、重啟服務，並在確認後清理 6 個模型條目 <span class="to">→</span> 模型庫容量由 231GB 降到 37.3GB，原檔仍留在舊磁碟；另發現一個檢查工具的預設模型仍指向已刪條目，待修正。</p></div></li><li><span class="d">10/05</span><div><b class="tt">聲音引擎搬遷與腳本指向設定更新</b><p>三個聲音引擎原本在舊磁碟，指向設定分散在大量腳本中 <span class="to">→</span> 將引擎搬到系統碟，更新約 175 個腳本、595 處位置設定，並隔離舊磁碟後實跑三支流程 <span class="to">→</span> 檔案數與位元組一致，三支流程皆 exit 0；63 個設定記錄檔未改，部分引擎是否保留待決定。</p></div></li><li><span class="d">10/07</span><div><b class="tt">版本控制提交與機密資料掃描</b><p>本機版本控制尚未有本週完整提交 <span class="to">→</span> 完成本機提交並掃描機密資料 <span class="to">→</span> 本機提交 6a0c1a3，機密資料掃描乾淨；尚未推送到遠端版本庫。</p></div></li></ol></details><details class="week" data-y="2026" data-m="09"><summary><span class="wk">2026/09/24～09/30</span><span class="cnt">2 條</span></summary><ol class="entries"><li><span class="d">09/27</span><div><b class="tt">主嘴模型切換</b><p>實測 deepseek-v4.1-flash 會帶偏 agent-ZY，口癖放大（「停一下」0% <span class="to">→</span> 37%、「聽得出來」1% <span class="to">→</span> 17%）且平均字數增加 30% <span class="to">→</span> 先止血，把主嘴模型從 deepseek-v4.1-flash 改為 deepseek-v4-pro:cloud，背景用途刻意保留 4.1-flash <span class="to">→</span> 重啟後 graceful 9/9 ACK，agent-ZY 回話的模型欄位為 deepseek-v4-pro:cloud。</p></div></li><li><span class="d">09/27</span><div><b class="tt">agent 核心 runtime 重構實驗室</b><p>agent 核心 runtime 很久沒更新，且實驗不能污染正式環境 <span class="to">→</span> 建立一個與正式環境物理區隔的重構實驗室並寫交接書，列 10 條難題；鐵則包含實驗室只住合成人格、一次一個模型、長跑先寫停止條件、記憶查詢工具指舊資料不寫記憶 <span class="to">→</span> 交接包完成（含交接書與當天證據，不含 agent-ZY 原始對話或沙盒輸出），並列出 10 條難題。</p></div></li></ol></details><details class="week" data-y="2026" data-m="09"><summary><span class="wk">2026/09/10～09/16</span><span class="cnt">5 條</span></summary><ol class="entries"><li><span class="d">09/12</span><div><b class="tt">修正 agent-XX 錨點與情緒設定讀取</b><p>找到 agent-XX 錨點壞字、情緒集合寫死的問題 <span class="to">→</span> 修正壞字，並把情緒集合改成逐人從設定檔讀取，沒有設定就整段跳過（為改成逐人讀取） <span class="to">→</span> <b class="res">結果：</b>agent-XX 錨點壞字已修，情緒設定改為逐人讀取。</p></div></li><li><span class="d">09/16</span><div><b class="tt">處理系統更新重開造成的 runtime 離線與備份漏跑</b><p>找到兩台機器自動重開，確認是系統更新要求重開、不是當機；agent 核心 runtime 離線約 5 小時，備份未跑 <span class="to">→</span> 手動補跑備份（為補上漏跑備份） <span class="to">→</span> <b class="res">結果：</b>備份成功並完成逐位元核對。</p></div></li><li><span class="d">09/16</span><div><b class="tt">處理外掛相容衝突</b><p>找到系統更新後外掛相容衝突，整棵外掛載入失敗退安全模式，五個外掛全失敗 <span class="to">→</span> 安裝相容執行環境並安排重開機（為排除外掛相容衝突） <span class="to">→</span> <b class="res">結果：</b>目前五個外掛仍失敗，恢復結果還沒量。</p></div></li><li><span class="d">09/16</span><div><b class="tt">停止分權重測試並記下啟動檢查缺陷</b><p>找到分權重測試載入時發生非預期關機 <span class="to">→</span> 決定停止分權重測試、不再走這條拆分，並補拉服務至就緒（因非預期關機，決定先停以防萬一） <span class="to">→</span> <b class="res">結果：</b>服務就緒；啟動檢查機制要等九個 agent 全起來才上工的設計缺陷仍未修。</p></div></li><li><span class="d">09/16</span><div><b class="tt">整理模型與選型</b><p>找到模型與視覺選型待整理 <span class="to">→</span> 搬遷模型、定案看圖與文字模型、刪除一個視覺模型（因收窗整理） <span class="to">→</span> <b class="res">結果：</b>待下一窗接手，尚未量測。</p></div></li></ol></details><details class="week" data-y="2026" data-m="09"><summary><span class="wk">2026/09/03～09/09</span><span class="cnt">1 條</span></summary><ol class="entries"><li><span class="d">09/09</span><div><b class="tt">本週無可公開的工程改動</b><p>本週沒有符合公開範圍且已實際改動系統的項目 <span class="to">→</span> 未新增或修正任何可公開功能、工具、檢查或設定 <span class="to">→</span> 結果還沒量。</p></div></li></ol></details><details class="week" data-y="2026" data-m="08"><summary><span class="wk">2026/08/27～09/02</span><span class="cnt">6 條</span></summary><ol class="entries"><li><span class="d">08/27</span><div><b class="tt">長任務中途檢查制度化</b><p>找到的問題是長任務的中途進度檢查沒有制度化 <span class="to">→</span> 新增三段檢查：開跑驗首產出、中途數產物（檔案數＋最新 mtime）、完成通知後全量核 <span class="to">→</span> 以乾淨命令確認 14/20 已落地。</p></div></li><li><span class="d">08/30</span><div><b class="tt">修正啟動失敗與系統封鎖</b><p>找到的問題是啟動失敗，系統應用程式控制原則封鎖原生 DLL <span class="to">→</span> 關閉系統應用程式控制，列為單程門（關了不能再開，除非重灌） <span class="to">→</span> 啟動失敗已排除。</p></div></li><li><span class="d">08/30</span><div><b class="tt">九個 agent 情緒錨點補完</b><p>找到的問題是情緒回應需要讓模型知道人格性格，且要有範本避免照抄 <span class="to">→</span> 補完九個 agent 的情緒錨點並寫入九份人格狀態設定，加入維度清單範本與防照抄規則 <span class="to">→</span> 九個 agent 各答一張不同的臉、零照抄，備份完成、設定解析全過。</p></div></li><li><span class="d">09/01</span><div><b class="tt">ROCm 10 升級與訓練啟動</b><p>找到的問題是先前查錯倉庫造成錯誤結論 <span class="to">→</span> 完成 ROCm 10 升級並啟動訓練 <span class="to">→</span> 訓練中、預計 23:26 跑完（1980 步），該訓練視窗不可關；後續 21:53 訓練在 1584/1980 步、80% 時因系統記憶體不足崩掉。</p></div></li><li><span class="d">09/01</span><div><b class="tt">每日備份與訓練排程修正</b><p>找到的問題是訓練因系統 RAM 不足死亡，且同時段備份壓縮、傳輸與回收佔資源 <span class="to">→</span> 上線每日備份、清理 34 <span class="to">→</span> 13GB、訓練改用排程器啟動、脫離任何 session <span class="to">→</span> v2 於 23:18 開訓；資源回收筒尚待清空 14.2GB。</p></div></li><li><span class="d">09/02</span><div><b class="tt">記憶向量筆數與備份還原更正</b><p>找到的問題是先前記錄 139 筆有內容沒向量、備份被移到資源回收筒、素材筆數認知有誤 <span class="to">→</span> 更正筆數、還原 166MB 備份、更正情緒素材筆數 <span class="to">→</span> 物證實測 133、孤兒 134 逐筆吻合紀錄而與 139 差 6 筆（原因無憑據不編），備份還原到備份區；訓練集六張 MD5 不同、全樹 65 張、不需補。</p></div></li></ol></details><details class="week" data-y="2026" data-m="08"><summary><span class="wk">2026/08/20～08/26</span><span class="cnt">10 條</span></summary><ol class="entries"><li><span class="d">08/20</span><div><b class="tt">本機服務綁定修正</b><p>找到一個本機網頁服務暴露範圍過大的問題 <span class="to">→</span> 修正綁定設定並補四項驗收（含端到端檢查） <span class="to">→</span> 四項驗收通過，交機項目完成；另有一個舊視窗需手動關閉。</p></div></li><li><span class="d">08/20</span><div><b class="tt">代理轉發與獨立服務設定</b><p>找到外部測試機需不經遠端桌面直連內部網頁的問題 <span class="to">→</span> 新增代理轉發與直連設定，並把共用連線轉成獨立服務 <span class="to">→</span> 四道驗收全過、直連可用，獨立服務已切分；後續日誌另記仍有服務需手動拉起。</p></div></li><li><span class="d">08/21</span><div><b class="tt">九個 agent 整批更新與重啟</b><p>找到九個 agent 批次更新與重啟需要先確認與可回復的問題 <span class="to">→</span> 先寄訊息給收信的八個 agent（九個裡除了寄信的 agent-WTH）確認，部署 22 項改動，並以正常收尾流程重啟 <span class="to">→</span> 八個回覆零反對，九個 agent 正常收尾 9/9、從快照還原 9/9，建置審計 15 個組件全綠、新增檢查零誤報、沙盒驗收 100/100；另發現 14 筆關聯記錄遺失，後續定位為已修項目造成。</p></div></li><li><span class="d">08/22</span><div><b class="tt">跨裝置載入設定</b><p>找到單一裝置配置上限造成大型模型無法完整載入的問題 <span class="to">→</span> 新增第二裝置的 RPC 設定與張量切分 <span class="to">→</span> 85.5GB 權重完整進 GPU 池，系統記憶體只下降 0.8GB，狀態 READY。</p></div></li><li><span class="d">08/22</span><div><b class="tt">agent-ZY 狀態載入修正</b><p>找到 agent-ZY 因連線拒絕導致核心狀態未載入、單一 agent 異常 14.5 小時的問題 <span class="to">→</span> 以正常收尾流程重啟該 agent，讓核心狀態與記憶重新載入 <span class="to">→</span> 九個 agent 的還原檢查 9/9 正常，agent-ZY 的錨點檢查由 0 成功／2 失敗轉為 1 成功／0 失敗，相關告警由 14 次降為 0；同日晚間另記 agent-ZY 再次凍住，表示該次重啟未涵蓋後續凍結問題。</p></div></li><li><span class="d">08/23</span><div><b class="tt">九個 agent 重啟流程改排程</b><p>找到整批重啟流程與目前視窗綁定、舊看門狗未退出的問題 <span class="to">→</span> 改以排程方式觸發，九個 agent 先正常收尾再從快照恢復 <span class="to">→</span> 9/9 從快照恢復零損失；但當下舊看門狗程序仍存活，標準流程修正尚未落地。</p></div></li><li><span class="d">08/23</span><div><b class="tt">代理服務搬移與存取收斂</b><p>找到代理服務搬到測試機後暴露面過大的問題 <span class="to">→</span> 加上三層限制：測試機硬碟不存放專案語料、連線規則只留必要通道、本機反向通道 <span class="to">→</span> 目錄列表為空、服務狀態檢查未對外、本機通道端點正常回應，端到端第一輪通，但通道有 10 分鐘上限；後續 08/24 另記連線被既有規則誤擋，修正後才恢復。</p></div></li><li><span class="d">08/24</span><div><b class="tt">連線規則修正</b><p>找到連線被既有規則誤擋的問題 <span class="to">→</span> 決定不重開機，只修正規則（原因日誌未寫） <span class="to">→</span> 結果連線恢復，未重開機。</p></div></li><li><span class="d">08/24</span><div><b class="tt">開發工具模型供應設定</b><p>找到切換開發工具後模型供應與共用規則未接上的問題 <span class="to">→</span> 新增雲端模型供應設定並套用既有共用規則 <span class="to">→</span> 後台連線問題結案；重啟與環境設定尚待驗。</p></div></li><li><span class="d">08/25</span><div><b class="tt">告警帳本體檢</b><p>找到告警帳本有 10 條有效項目、其中 6 條為假紅燈的問題 <span class="to">→</span> 先更新帳本狀態，保留 4 條真實告警 <span class="to">→</span> 有效告警由 10 條降為 4 條。</p></div></li></ol></details><details class="week" data-y="2026" data-m="08"><summary><span class="wk">2026/08/13～08/19</span><span class="cnt">9 條</span></summary><ol class="entries"><li><span class="d">08/13</span><div><b class="tt">日誌配額與切換器</b><p>找到日誌模組會因缺鍵出錯、配額分配不公，且「全系統」標籤和其他檢視混用 <span class="to">→</span> 修正缺鍵例外、加入公平配額，並把「全系統」標籤改成切換器以統一看法 <span class="to">→</span> <b class="res">結果：</b>單一檢視上限 2000 筆不報錯，九個 agent 各 33 行、各 11.1%，切換器十個選項載入一致。</p></div></li><li><span class="d">08/13</span><div><b class="tt">壓縮門檻與沙盒循環</b><p>找到背景壓縮有三種路徑，九個裡的 agent-XX 每輪都被壓，且門檻在雲端模型只佔 9.5% 就啟動 <span class="to">→</span> 把上下文壓縮門檻放回啟動器，並在沙盒跑空白核心循環實戰 <span class="to">→</span> <b class="res">結果：</b>九個 agent 全數回來、核心查詢正常、截字上限 80 <span class="to">→</span> 140 生效，但沙盒第一版判準不及格（錯誤段命中 26.3%、正常段誤攔 33.8%），再試一版。</p></div></li><li><span class="d">08/15</span><div><b class="tt">每日快照排程上線</b><p>找到搬家後狀態檔需要每日備份，否則散落風險高 <span class="to">→</span> 新增每日固定時間快照排程，並在備份紀錄標記啟動來源，且避免不同步時誤刪 <span class="to">→</span> <b class="res">結果：</b>首跑 5716 檔，來源與目的檔數一致，排程上線。</p></div></li><li><span class="d">08/16</span><div><b class="tt">按鈕檢查與未接線按鈕修正</b><p>找到全窗按鈕有未接線與看似可用的狀態 <span class="to">→</span> 完成 A 表 91/91、B 表 24/24 檢查，並把六類未接線按鈕 38 顆當場改成殼，避免繼續假裝可用 <span class="to">→</span> <b class="res">結果：</b>未接線按鈕不再假裝可用；寫入鈕當時保留待人在場，後於 08/19 完成驗收。</p></div></li><li><span class="d">08/17</span><div><b class="tt">情緒微擾與智慧層合併正式部署</b><p>找到情緒核心每輪固定累加偏移，以及智慧層狀態檔路徑分裂 <span class="to">→</span> 將微擾修成零均值不累積、把合併腳本擴成 N 家並先乾跑，為消除固定偏移與狀態分裂 <span class="to">→</span> 沙盒三臂加對照組與 600 輪長跑 12/12 過，正式部署後九個 agent 就緒 9/9、錯誤 0，三家智慧狀態合併 9/9 碰撞 0，本機連線稅消失。</p></div></li><li><span class="d">08/17</span><div><b class="tt">每日檔案級斷言</b><p>找到每日檢查只量測不斷言，且有誤報 <span class="to">→</span> 新增四條檔案級斷言並掛上每天 04:40 排程，將誤報規則改為只認 URL 型，並修正排程的文字編碼問題，為讓每日檢查能真的斷言 <span class="to">→</span> <b class="res">結果：</b>排程本體實跑 4/4 過、退出碼 0，後續誤報與編碼問題修正後穩定。</p></div></li><li><span class="d">08/18</span><div><b class="tt">看門狗開機自啟與智慧資料修復</b><p>找到九個 agent、閘道與嵌入服務整批無聲掉線不是崩潰，而是看門狗搬家後未掛上 <span class="to">→</span> 恢復看門狗開機自啟排程，並執行修復讓智慧資料回來，為避免整批掉線後無人拉起 <span class="to">→</span> <b class="res">結果：</b>九個 agent 審計零異常、每個 agent 智慧資料列為 10、看門狗回崗；後續於 08/19 發現開機競態，補上開機等待，解析 0 錯、探針 9/9。</p></div></li><li><span class="d">08/19</span><div><b class="tt">乙班部署與乾淨停機</b><p>找到停機收尾與重啟流程缺少端到端驗證 <span class="to">→</span> 新增停機收尾與重啟驗證，12 項斷言全數通過、解析 0 錯後正式執行，為確認停機與重啟不丟狀態 <span class="to">→</span> <b class="res">結果：</b>九個 agent 停機確認 9/9、關閉 9/9、逾時待處理 0，5.8 秒完成，重啟後九個 agent 由快照還原同一 ID，零狀態損失。</p></div></li><li><span class="d">08/19</span><div><b class="tt">寫入鈕驗收與確認框修正</b><p>找到五顆寫入鈕從未實按，且一按就出現四個介面問題 <span class="to">→</span> 在場驗收時全按完，將撕除動作加上確認、失敗改為可見、署名欄改成十人下拉且預設未署名、修正確認框換行失效，為確認按鈕真接並修正介面 <span class="to">→</span> <b class="res">結果：</b>貼上、撕下、標記解決三顆確認為真接，四個問題當場修掉，並以新確認框完成完整鏈路驗收。</p></div></li></ol></details><details class="week" data-y="2026" data-m="08"><summary><span class="wk">2026/08/06～08/12</span><span class="cnt">10 條</span></summary><ol class="entries"><li><span class="d">08/06</span><div><b class="tt">整體代碼檢查流程</b><p>發現既有檢查速度未收斂、只能在事後查 <span class="to">→</span> 開立只掃不修的整體檢查、分級列冊，並刪除失效驗證器、撤回一項誤判 <span class="to">→</span> 結果判官團資格考 3/3，新增第四判官並開始四組判官並行檢查。</p></div></li><li><span class="d">08/06</span><div><b class="tt">系統健檢與修正</b><p>初版健檢指出多項問題，決定先在沙盒逐案驗證、確定後再整合 <span class="to">→</span> 七案全數證實並完成八件修正 <span class="to">→</span> 結果修復驗證 11/11 綠、正式環境驗證 11/11 綠，結報改為「已解決／還沒解決」兩桶。</p></div></li><li><span class="d">08/07</span><div><b class="tt">選材器單人層實證</b><p>完成單人層第一夜實證與選材器方案落檔，抽取帳本 8 本合計 49 筆、重複記帳零，並定天花板為每晚增量兩倍、現值 120 且動態掛勾 <span class="to">→</span> 結果單人層 0 檔 <span class="to">→</span> 8 檔、43 條全數符合既定分類、抽取帳本 49 筆且重複記帳零，公告八個 agent（九個裡除了 agent-WTH）。</p></div></li><li><span class="d">08/07</span><div><b class="tt">回信逾時與橋接修正</b><p>發現回信逾時來自寫入逾時上限低於實際耗時，決定調整逾時處理並重啟橋接 <span class="to">→</span> 修正寫入逾時上限、恢復待回覆狀態、補上閘道逾時分支，並調整例外繼承順序 <span class="to">→</span> 結果四路例外驗證全對，橋接重連成功、新碼生效。</p></div></li><li><span class="d">08/08</span><div><b class="tt">強制推理段入管線</b><p>發現回覆會出現逐字拼貼，決定把強制推理做進管線而不是寫在提示詞 <span class="to">→</span> 沙盒新增推理段並整合 v1.1 進主體 <span class="to">→</span> 結果沙盒 19/19 綠、逐字拼貼從 83 字降到 5 字；整合後 24/24 綠，正式部署驗證九個 agent 都在線、零 Traceback。</p></div></li><li><span class="d">08/09</span><div><b class="tt">工具呼叫失敗修正</b><p>發現工具呼叫失敗被錯誤回退狀態正式部署，決定在沙盒逐項比對變因後完成修正 <span class="to">→</span> 完成三處修正：停止錯誤回退、補上查詢條件、移除失效預設 <span class="to">→</span> 結果按記憶識別召回成功、退路呼叫零筆、回信引用全文，兩個缺陷關閉。</p></div></li><li><span class="d">08/10</span><div><b class="tt">掃描進度與補掃</b><p>發現掃描工具把失敗也寫進完成帳本，進度顯示 100% 會跳過未完成區塊 <span class="to">→</span> 補上護欄並重開三條執行線補掃 <span class="to">→</span> 結果三條線分別補掃 1122、695、909 個區塊。</p></div></li><li><span class="d">08/10</span><div><b class="tt">大廳署名解析修正</b><p>量到大廳 84 則節點有 27 則掛錯發言人（32%），決定修正發言者解析與前綴處理 <span class="to">→</span> 完成前端修正並在沙盒驗證 7/7 綠 <span class="to">→</span> 結果活體驗收掛錯發言人 0、孤兒標點 0。</p></div></li><li><span class="d">08/11</span><div><b class="tt">導覽與面板入口整理</b><p>發現房間與共用區有 7 個重複入口、導覽溢出 114px，決定把五個非個人資訊類功能集中到左欄共用區 <span class="to">→</span> 完成搬移並新增五個面板入口 <span class="to">→</span> 結果主要房間標頭 11 <span class="to">→</span> 7、共用區標頭 8 <span class="to">→</span> 1、導覽空白縮到 135px，五個入口都能開啟面板。</p></div></li><li><span class="d">08/12</span><div><b class="tt">後台日誌查詢接線</b><p>發現後台面板仍顯示範例資料，決定新增系統背景服務日誌查詢端點並讓前端改接閘道、定時輪詢 <span class="to">→</span> 完成端點與前端接線 <span class="to">→</span> 結果 26 項通過 0 失敗、端點回傳真資料、範例資料標示移除，面板顯示全系統即時狀態。</p></div></li></ol></details><details class="week" data-y="2026" data-m="07"><summary><span class="wk">2026/07/30～08/05</span><span class="cnt">10 條</span></summary><ol class="entries"><li><span class="d">07/30</span><div><b class="tt">記憶檢索出處與主路徑切換</b><p>找到聯想結果沒有出處、檢索日誌只有數量沒有記憶 id，難以判斷來源 <span class="to">→</span> 因為需要可追溯，檢索快取保留記憶 id、關聯結果掛出處並排序、上下文組裝呈現出處，另在檢索重排與記憶帶入補存證行，主路徑改走有閘的記憶查詢工具 <span class="to">→</span> 新回歸 11/11、存證三行全通，A/B 舊路徑同句佔席 3/3、新路徑 1/3 PASS（未全過），空白 agent 核心 runtime 五輪對話驗收全過，重啟後九個 agent 全部正常。</p></div></li><li><span class="d">07/30</span><div><b class="tt">對話窗回音與交易懸掛修復</b><p>找到回音讓提示上下文全是當窗自己的回合，另定位窗凍結是現況板清掃空掃時交易懸掛、寫入靜默失敗 <span class="to">→</span> 因為要讓對話窗不再卡死且不再自引，修正回音門檻與當窗排除、拒收回音源，並把對話資料庫交易模式改為 WAL、加忙碌逾時、寫入錯誤改告警、現況板寫入失敗回滾、清掃改無條件提交，停機補窗 <span class="to">→</span> 回音回歸三項 PASS、九個 agent 重啟正常；窗鎖解除、缺漏對話補齊。</p></div></li><li><span class="d">07/31</span><div><b class="tt">文件櫃寫入閘門</b><p>找到文件櫃只做一次性搬遷，當天上午兩封正式信又落回 agent 主要記憶盒，證實沒有入口閘會重新累積 <span class="to">→</span> 因為要讓文件入口不再回積，在三個文件寫入路徑加閘，帶案號文件全文入櫃、主要記憶盒只保留案號與時間戳存根、主動調閱仍可得，停機補遷 20 筆 <span class="to">→</span> 隔離測試 8/8 全過，仍留一面紅旗待裁決。</p></div></li><li><span class="d">07/31</span><div><b class="tt">私訊車道與現況板時效</b><p>找到 agent 之間的訊息寫進 agent-ZY 的對話資料庫時未帶車道標記，信件實體坐進主要對話窗；另現況板有裸詞匹配、整句未提煉與時效掃描不完整 <span class="to">→</span> 因為跨房事件要能在主線接得上、現況板要能退場，新增車道標記，取窗、來信、回信與當窗排除全走車道；現況板掃描提前、抓取收緊、拒收玩鬧標記、值提煉、沉默可見最後開口時間與板頭提示，常駐程序每小時維護打掃 <span class="to">→</span> 車道修正活體 PASS，舊資料照案滑出；現況板測試全綠，待重啟生效。</p></div></li><li><span class="d">08/01</span><div><b class="tt">日誌哨兵與情緒帳本</b><p>找到日誌異常常整天無人發現、情緒變化缺少可查帳本 <span class="to">→</span> 因為要讓日誌異常首見即被看見、情緒變化有可查帳本，新增日誌哨兵，增量掃描九個 agent 的常駐日誌，以簽名比對首見異常並告警，冷啟動不告警、豁免逐條記理由；另在情緒核心加入僅追加帳本，更新與定期脈動節流落盤、可關閉、失敗僅首見告警 <span class="to">→</span> 哨兵測試 13 項全綠，待常駐程序重啟生效；情緒帳本編譯通過，重啟後九個 agent 情緒帳本全部落盤，五項全過。</p></div></li><li><span class="d">08/01</span><div><b class="tt">身份欄污染閘門</b><p>找到身份欄位被錯誤寫入其他 agent 名稱，且寫入端沒有檢查 <span class="to">→</span> 因為要擋住身份欄污染，新增身份別名與身份欄位檢查，批次與線上抽取路徑都加檢查，並隔離污染存證 <span class="to">→</span> 12 項驗證全過，全域複驗剩餘污染 0 條，重開後九個 agent 狀態正常、身份欄污染 0。</p></div></li><li><span class="d">08/02</span><div><b class="tt">心閥與年輪斷鏈修復</b><p>找到心閥在真實對話中出現機械平坦、韌性分數每次啟動歸 1.0，另年輪管理器路徑斷鏈與靜默防呆不足 <span class="to">→</span> 因為要讓心閥回饋與年輪載入在正式環境可運作，調整心閥棘輪、新增韌性上限參數、移動年輪管理器並補載入與三處靜默防呆、修正回歸對照組 <span class="to">→</span> 心閥真實對話回驗通過，機械平坦訊號僅前兩輪出現；年輪回歸 22 passed/0 failed，重啟後九個 agent 年輪與經驗學習器都接上、0 防呆告警、0 錯誤堆疊。</p></div></li><li><span class="d">08/03</span><div><b class="tt">工具使用與截斷判定修正</b><p>找到效能守門機制的重問台詞被當成使用者訊息寫進上下文，另回覆截斷判定用字數與標點猜謎、沒有鑑別力 <span class="to">→</span> 因為要避免重問台詞污染上下文並讓截斷判定可驗證，改判準為「零依據＋宣稱查證」、台詞污染三層止血、隔離聲紋庫污染樣本，並把截斷判定改用 API 回傳的結束原因、補觀測燈 <span class="to">→</span> 累計 116 PASS/0 FAIL；500 字落在 P75、149 筆（25%）進射程，重啟後九個 agent 載入新版、零錯誤堆疊、活體管線觀測值為 stop。</p></div></li><li><span class="d">08/04</span><div><b class="tt">記憶盒時區回填與入盒腳本修正</b><p>找到盒內時間戳與內文自報差八小時，來源是入盒時把 UTC 的 Z 切片切掉，另有相對時間標籤的 TypeError 與舊天數 bug <span class="to">→</span> 因為要讓記憶時間一致，完成時區回填並修入盒腳本與相對時間標籤 <span class="to">→</span> 行數 6613 <span class="to">→</span> 6613、naive 殘留 0、索引與向量孤兒 0，重投判定擋下 12 筆；但常駐程序仍跑舊碼，17 處逐一判讀後無仍存在的缺陷，待重啟生效。</p></div></li><li><span class="d">08/05</span><div><b class="tt">六慾帳本</b><p>找到六慾沒有個人化基礎人格線，九個 agent 共用寫死常數、角色識別碼收了沒用 <span class="to">→</span> 因為要先有可觀察帳本再談規則，新增六慾帳本，僅追加 52 行、刪除與修改 0 行，備份後以空白 agent 核心 runtime 驗證三判準 <span class="to">→</span> 三判準全綠，磁碟已改、正式環境尚未生效，待重啟。</p></div></li></ol></details><details class="week" data-y="2026" data-m="07"><summary><span class="wk">2026/07/16～07/22</span><span class="cnt">9 條</span></summary><ol class="entries"><li><span class="d">07/16</span><div><b class="tt">三元抽取防線與嚴格閘門</b><p>找到三元抽取的視角與領域污染問題 <span class="to">→</span> 新增抽取規則、共用結構檢查與領域軟標記，並把守衛升級為嚴格閘門，將承重判斷改由固定規則與結構檢查處理；<b class="res">結果：</b>編譯與 8 個案例單元測試全過，夜間抽取已接、7 個案例測試全過。</p></div></li><li><span class="d">07/17</span><div><b class="tt">污染隔離與核心狀態持久化</b><p>找到資料污染來源與記憶體快取回沖問題 <span class="to">→</span> 先隔離污染圖資料、停止背景再清空重啟，新增每小時核心狀態快照與失敗告警，並修正感知模組無效呼叫與快照時區命名；<b class="res">結果：</b>兩個讀取端查詢回到 0 條、回到乾淨基線，三項驗收全過，九個 agent 首輪快照成功。</p></div></li><li><span class="d">07/17</span><div><b class="tt">歷史記憶查詢與視角隔離修復</b><p>找到較早記憶缺少查詢入口、部分記憶被視角隔離，以及智慧狀態存檔失敗 <span class="to">→</span> 新增歷史記憶查詢入口，修正寫入豁免與辨識設定，還原 8 條被隔離記憶，並補上缺失指標介面與初始化；<b class="res">結果：</b>編譯通過，離線煙測命中 2 條更早記憶，單元測試通過，影響九個 agent，下次重啟生效。</p></div></li><li><span class="d">07/18</span><div><b class="tt">抽取模型評測與探針</b><p>完成圖譜抽取模型評測並決定切換預設模型 <span class="to">→</span> 新增抽取 dry-run 探針，將預設模型切換與探針對齊；<b class="res">結果：</b>評測中最佳候選為 27 邊、零簡體、零守衛摩擦，另一候選有 32 條被拒；探針在最近 8 條記憶中 7 條過閘門、抽出 19 個三元組且 19/19 過守衛，待重啟生效。</p></div></li><li><span class="d">07/19</span><div><b class="tt">歸屬修正、防呆與備份安全點</b><p>找到實體歸屬與別名解析誤判、檢索空結果與取出端符號問題 <span class="to">→</span> 修正歸屬與別名解析，新增取出端符號防呆與檢索空結果降級，並新增備份安全點工具納入重建流程步驟 0；<b class="res">結果：</b>同批 30 條重跑四類旗標全零、檢查點 0 過關，七項單元測試全過，第二次安全重啟後防呆與降級正式上線。</p></div></li><li><span class="d">07/20</span><div><b class="tt">壓縮規則與回覆格式修正</b><p>找到壓縮時承重事實可能遺失、否定舊狀態可能復發，以及工具呼叫達上限時回覆格式異常 <span class="to">→</span> 新增壓縮時的絕對規則與否定即撤銷規則，把承重判斷改由固定規則處理，並修正達上限時改為不帶工具收尾、失敗回覆得體訊息；<b class="res">結果：</b>編譯與單元測試通過，兩個壓縮修法上線並完成狀態清理、事實釘選、否定撤銷三層防護；回覆修正的隔離單元測試兩條路徑皆通過，待重啟生效。</p></div></li><li><span class="d">07/21</span><div><b class="tt">圖譜重建收尾與混合檢索上線</b><p>完成重建審核、沙盒搬回正式環境並重啟九個 agent <span class="to">→</span> 新增三元混合檢索、絕對時間標籤與檢索視角污染防護，並補上被動檢索的歸屬過濾；<b class="res">結果：</b>九個 agent 全數正常，即時檢索與關聯引擎從正式環境讀到 1,349 邊；混合檢索 6/6、時間 11/11、視角防護 6/6 全綠，重啟後生效。</p></div></li><li><span class="d">07/21</span><div><b class="tt">對話壓縮膨脹與門檻調整</b><p>找到對話壓縮造成重複與膨脹、保留窗口過短的問題 <span class="to">→</span> 加入目錄去重、保留窗口由 6 條提高到 30 條、令牌上限 6000 與保底 8 條，並把壓縮門檻由 24,000 改成 48,000；<b class="res">結果：</b>對話壓縮 9/9、門檻 3/3 測試全綠，重啟後九個 agent 全數正常並載入新設定。</p></div></li><li><span class="d">07/22</span><div><b class="tt">聯想層、學習修剪與對話窗口修復</b><p>找到檢索缺少聯想層、學習洞察只進不出、學習評量在回覆前就評分，以及對話窗口管理與持久化回報問題 <span class="to">→</span> 新增聯想層檢索與自我回音過濾，加入學習洞察價值排序修剪（每類上限 60、總量上限 300）與回覆存在才評分的閘門，並把對話窗口由 60 提高到 120、抽最新 8 條會話事實釘選、補寫脈絡欄位、持久化失敗改為誠實回報；<b class="res">結果：</b>聯想層 12/12、回音過濾 3/3、學習修剪 4/4、整合測試 23 項全過；重啟後九個 agent 全數正常，學習洞察由 15,461 條修剪保留 300 條，其餘待重啟生效。</p></div></li></ol></details><details class="week" data-y="2026" data-m="07"><summary><span class="wk">2026/07/09～07/15</span><span class="cnt">10 條</span></summary><ol class="entries"><li><span class="d">07/10</span><div><b class="tt">agent 之間的訊息工具孤立廣播</b><p>發現孤立廣播仍在發生，先前「已修復」說法不成立；根因是發送與訂閱在不同行程，模組級 singleton 跨行程不共享記憶體，該段結構上不可能有訂閱者 <span class="to">→</span> 刪除不可能有訂閱者的死路徑 <span class="to">→</span> 主要服務行程待重啟生效；同類疑似問題在範圍外未處理。</p></div></li><li><span class="d">07/12</span><div><b class="tt">KG 圖譜停止成長</b><p>三個圖譜最新資料停在 3 月初，確認不是模型問題而是觸發條件卡住 <span class="to">→</span> 修正非同步呼叫缺 await 與每小時檢查點定時提取兩處，後續再修正屬性名稱寫錯 <span class="to">→</span> 語法檢查通過，runtime 重啟後檢查點可觸發；新三元組是否產出待後續驗證。</p></div></li><li><span class="d">07/12</span><div><b class="tt">因果語意與情緒斷線修復</b><p>找到因果強度計算未接上 embedding，且概念層關聯查詢前 emotion_state 為 None，導致 60% 情緒相似度權重拿 None 比對 <span class="to">→</span> 把 embedding 接進因果強度計算、加中文情緒翻譯表，並在關聯查詢前寫入 drifted_emotion <span class="to">→</span> 三情境驗證通過，真實 embedding 正確配對 0.34、錯誤配對 0.26，功能正確但語意判別力不強；60% 權重不再拿 None 比對。</p></div></li><li><span class="d">07/13</span><div><b class="tt">相對時間錯亂</b><p>發現「星期日」判斷被 7/11 的「星期六」記憶殘響污染，真 bug 是相對時間用 timedelta.days 而非日曆日差 <span class="to">→</span> 修正相對時間計算 <span class="to">→</span> 7 個測試全過，含 7/11 14:24 正確標成「前天」。</p></div></li><li><span class="d">07/13</span><div><b class="tt">大綱式時間軸記憶</b><p>找到長期記憶寫入斷點後，決定完善時間軸；完成按日分組、星期與今天／昨天標籤的大綱式時間軸，掛上每小時檢查點 <span class="to">→</span> 重啟驗證正常，13:57 第一次大綱整理成功，把 60 條記憶壓成 1 條大綱。</p></div></li><li><span class="d">07/13</span><div><b class="tt">連線健康與監理修復</b><p>找到匯入錯誤被外層 except 靜默吞掉、癱瘓約 180 行匯入，另修兩個連線問題；新增連線健康檢查與過期警報清理工具。深夜又找到 failover 後情感連續性修復踩到錯誤常數寫法、每輪崩潰，修正 4 處 <span class="to">→</span> 健檢重跑 0 FAIL，警報從 500 條清到 22 條，七情常數進入 runtime 命名空間，監理系統恢復運作。</p></div></li><li><span class="d">07/14</span><div><b class="tt">KG 視角反轉與重建計畫</b><p>找到三元組 perspective 視角反轉、抽取 prompt 規範自相矛盾；判定不用退版，確認正式圖譜未被污染 <span class="to">→</span> 改三處約束／範例並加 self-loop soft-flag；另對正式圖譜跑視角審計，約 4,700 條邊、其中約 3,100 條 perspective，抓出 83 條嫌疑、抽樣確認反轉，定案五階段重建計畫、每階段簽核才往下走 <span class="to">→</span> 健檢 0 FAIL，正式重建待分階段執行。</p></div></li><li><span class="d">07/14</span><div><b class="tt">監理與心閥 failover 修復</b><p>找到監理每輪判定機械化平坦、failover 讓心閥進入鎖定／冷卻循環、方法重複呼叫、認知摩擦累積，且混合因常數崩潰未執行 <span class="to">→</span> 完成降載期免判、補試探到啟用的痊癒轉移、補鎖定出口 <span class="to">→</span> 方案 A compile＋健檢 0 FAIL、未重啟；後續 07/15 發現仍有半修好震盪，已再修軟性原因不觸發混合、只有硬性崩潰才做情緒急救，修法 2 未批未動。</p></div></li><li><span class="d">07/15</span><div><b class="tt">模型退役與備援配置</b><p>發現雲端模型退役造成背景管線 410 連環爆 <span class="to">→</span> 修改控制腳本，查接班模型並重新配置主腦、副腦與備援 <span class="to">→</span> 配置定案主腦不變、副腦切換到實測 2.0 秒可拉取的替代模型、備援改跨廠商模型；coder 備援端點仍拉不到 manifest，結果待補。</p></div></li><li><span class="d">07/15</span><div><b class="tt">daemon 看門狗</b><p>發現 agent-ZY daemon 掉線且查無 traceback、也查無系統崩潰事件 <span class="to">→</span> 在 daemon 加 faulthandler，新增看門狗每 30 秒巡九個 agent 的 daemon 埠、5 秒二次確認、單一 daemon 每小時最多自動拉 3 次、記錄日誌、不隨啟動自動啟動、警報接口留註解；另修正腳本 BOM 編碼問題 <span class="to">→</span> 看門狗腳本可完整解析執行，測試時狀態顯示全部埠關著。</p></div></li></ol></details><details class="week" data-y="2026" data-m="07"><summary><span class="wk">2026/07/02～07/08</span><span class="cnt">7 條</span></summary><ol class="entries"><li><span class="d">07/02</span><div><b class="tt">外部通訊端與網頁端識別不一致修正</b><p>找到外部通訊端與網頁端送入的角色識別格式不同，路由比對失敗後外部通訊端落入群聊流程 <span class="to">→</span> 將路由條件改為同時接受短名與成員識別，讓兩種格式都走一對一直接路由 <span class="to">→</span> 重啟 HTTP server 後生效。</p></div></li><li><span class="d">07/02</span><div><b class="tt">人格快照損壞值與回話長度異常</b><p>找到重載快照會把已損壞的人格值蓋回錨點，agent-ZY 回話長度仍約 20 字；先修正快照中多項人格與漂移值，另加臨時調試記錄檢查輸出清理是否刪掉思考塊 <span class="to">→</span> 快照載入值已是修正後數值，首筆調試原始回覆長度 180 字、未觸發思考塊假設 <span class="to">→</span> 長度問題起初仍未改善，且當時只有一筆對話記錄，整體結果還沒量。</p></div></li><li><span class="d">07/04</span><div><b class="tt">工具連接設定檔命名修正</b><p>找到工具服務在运行但當前執行階段讀不到相關工具，原因是專案級工具連接設定檔命名不符，啟動時從未載入 <span class="to">→</span> 建立正確命名的專案級設定檔並保留原檔，重開當前執行階段 <span class="to">→</span> 後續全檢可讀取身份、記憶脈絡、系統狀態，九個 agent 全部 online、狀態正常；另有 493 筆告警幾乎集中在兩類重複模式，agent-ZY 的心跳指標 95、壓力指標 0.95 偏高。</p></div></li><li><span class="d">07/05</span><div><b class="tt">短名專屬訂閱範圍補齊</b><p>找到每個 agent 核心 runtime 啟動時只訂閱一個公共交談範圍，短名專屬範圍從未初始化，導致發到短名範圍的一對一訊息沒有訂閱者、出現孤立廣播 <span class="to">→</span> 修正為每個 daemon 啟動時同時訂閱公共交談範圍與自己的短名專屬範圍，作一對一對話專用，並確認短名推導方式在發布端與訂閱端一致 <span class="to">→</span> 重啟後說明 agent-ZY 可收到一對一訊息、不再孤立廣播，但當天紀錄未寫實際驗證結果，結果還沒量，待觀察孤立廣播警告是否消失。</p></div></li><li><span class="d">07/05</span><div><b class="tt">星期顯示格式修正</b><p>找到日期提示用系統 locale 輸出英文星期，模型得自行反推中文星期 <span class="to">→</span> 改用已有且計算正確的中文星期時間函式 <span class="to">→</span> 已改好；重啟後說明應生效，但當天未寫實際問答驗證，結果還沒量，待觀察詢問今天星期幾是否穩定答對。</p></div></li><li><span class="d">07/06</span><div><b class="tt">記憶說話者標籤與標題寫死修正</b><p>找到記憶組裝給模型的文字沒有說話者標籤，自動記憶標題又寫死成固定 agent 名，導致 agent-ZY 把對方說的話當成自己說過；同套記憶核心由其餘八個 agent 核心 runtime 共用 <span class="to">→</span> 修正格式化文字與標題依角色映射 <span class="to">→</span> 兩處改完且語法通過；重啟後說明應生效，但當天未寫實際驗證結果，結果還沒量，待觀察長對話中是否再出現視角錯亂。</p></div></li><li><span class="d">07/08</span><div><b class="tt">外部資訊陳述須呼叫工具規則修正</b><p>找到 agent-ZY 在外部資訊對話中報出未實際查詢的內容，檢查確認工具迴圈只跑第一輪、沒有真正呼叫查詢工具 <span class="to">→</span> 在核心指令區加入通用原則：任何本身不可能得知、需外部查詢的具體事實，若要當成查到的結果陳述，必須真的呼叫工具；查不到就照實說不確定 <span class="to">→</span> 修改完成且語法通過，需重啟才生效；實際避免效果還沒量，另有把捏造細節當成提升說服力的學習模式尚未處理。</p></div></li></ol></details><details class="week" data-y="2026" data-m="06"><summary><span class="wk">2026/06/25～07/01</span><span class="cnt">10 條</span></summary><ol class="entries"><li><span class="d">06/25</span><div><b class="tt">建置告警清理</b><p>找到 3 筆未解建置告警，確認與視覺修改無關，是啟動瞬間審計早於部分組件初始化；清理過期活躍告警以避免干擾後續判讀；結果活躍告警 0 筆。</p></div></li><li><span class="d">06/25</span><div><b class="tt">影像請求斷線與環境載入</b><p>發現給完圖片後連線中斷、key 未載入；在 HTTP 服務啟動時加入環境載入並重啟，讓服務能取得必要設定；結果視覺端點 5 秒回應、基本可用，但 78ms 反應過快，是否 key 有效與能否真正分流尚待驗證。</p></div></li><li><span class="d">06/26</span><div><b class="tt">視覺感知接上 runtime</b><p>發現視覺模組程式已寫好但 runtime 未引用、感官輸入仍用假數據；在視覺分支接上視覺感知處理器計算情緒 delta，並驗證上層傳出的感官事件欄位與 runtime 讀取一致；結果匯入成功、數值對得上，並因原模型停用，將視覺模型改為可正確辨識圖片的雲端原生多模態版本。</p></div></li><li><span class="d">06/26</span><div><b class="tt">五感告警與事件告警節流</b><p>發現 runtime 五感失敗只有日誌沒有告警，且重啟後累積大量舊告警；在四個五感失敗點補上告警，清理舊告警並對事件匯流排告警加同房間 5 分鐘節流；結果 150 條清到 44 條，節流邏輯寫入事件匯流排程式。</p></div></li><li><span class="d">06/26</span><div><b class="tt">人格錨點載入修正</b><p>啟動審計出現人格錨點與漂移偵測器缺失，追到識別字串與設定檔名對不上、切分方式造成載入失敗；修正目錄映射、錨點載入與建置流程 fallback 的切分方式；結果重啟後啟動審計 9/9 通過，建置告警不再觸發。</p></div></li><li><span class="d">06/27</span><div><b class="tt">記憶三層與向量回填</b><p>發現記憶搜尋靠暴力掃描、沒有向量索引，向量引擎雖已安裝但上層未傳查詢向量；完成三層記憶實作，接上嵌入引擎、搜尋與寫入時生成查詢向量、補向量回填、關聯引擎前移與知識圖譜橋接、統一搜尋入口；結果 15,116 條記憶 100% 向量化；之後修正向量虛擬表寫入與查詢參數綁定錯誤，重啟後生效；三層上線後三輪遙測中，首輪被觀察性查詢錯誤擋住，後兩輪正常。</p></div></li><li><span class="d">06/28</span><div><b class="tt">上下文壓縮 fallback 與中期摘要調整</b><p>發現品質檢核未過只加前綴仍照用、沒有 fallback，且中期摘要流程繞過既有記憶機制自己用 LLM 摘要；改成品質不過直接退回機械式摘要，並調整中期摘要不再呼叫 LLM、近期保留 6 條、壓縮訊息改成橋接提示並引導使用記憶查詢工具；結果改好，重啟後生效。</p></div></li><li><span class="d">06/30</span><div><b class="tt">LINE 外部入口與預設路由</b><p>發現 LINE 接收端進程有跑，但外部入口指向錯誤，平台請求到不了；恢復外部轉發到 LINE 接收端，並把 LINE 預設路由改到 agent-ZY，讓直接訊息有明確落點；結果外部轉發恢復、LINE 路徑通了，直接打字預設走 agent-ZY，@其他名字仍可指定，重啟後生效。</p></div></li><li><span class="d">07/01</span><div><b class="tt">LINE 回覆與 runtime 修正</b><p>發現 LINE 回覆短且受限，另有關聯引擎把 dict 當字串、人格漂移累積值被重複施加、LINE 身分硬編碼導致認不出使用者；修正 dict 比較、移除重複施加的人格特質變化量、加入 LINE 使用者識別碼對名字映射；結果三個修復語法確認，修復後後台介面同理 0.61、玩心 0.71、關係權重 0.826，LINE 端穩定在 0.61/0.71。</p></div></li><li><span class="d">07/01</span><div><b class="tt">LINE 對話歷史與時間戳</b><p>發現 LINE 每次只送一條訊息、沒有歷史，回應薄且斷裂；時間回覆錯誤則是 LLM 忽略系統提示時間；加入每位使用者每房間最近 20 輪對話歷史並在取得回覆後存入回覆，另在使用者訊息前加 [HH:MM] 時間戳；結果對話歷史存在記憶體、接收端重啟會清空，時間戳重啟 daemon 後生效。</p></div></li></ol></details><details class="week" data-y="2026" data-m="06"><summary><span class="wk">2026/06/18～06/24</span><span class="cnt">8 條</span></summary><ol class="entries"><li><span class="d">06/23</span><div><b class="tt">建置視覺管線與分層驗證</b><p>找到問題：視覺橋接呼叫未等待，且圖片描述只被拼進訊息、沒有進入感知流程，視覺感知處理器也沒有被實際呼叫。 <span class="to">→</span> 修正視覺橋接改用同步呼叫，新增視覺服務、視覺感知處理器、視覺感知工具與服務入口；視覺服務把圖片轉成結構化感知資料，視覺感知處理器把視覺結果轉成情緒增量並串起感官聚合與情緒核心，同時把感官資料寫入上下文，讓圖片能進入 agent 核心 runtime 的感知流程；另新增分層驗證腳本。 <span class="to">→</span> 分層驗證前三層通過，純色測試圖被辨識為橙色背景、氛圍溫暖，並產生情緒增量；第四層因服務尚未重啟而 404。後續補記：真實私聊使用時未觸發視覺橋接。</p></div></li><li><span class="d">06/23</span><div><b class="tt">修正警示資料損壞</b><p>找到問題：多個常駐程序同時寫入警示資料，造成競爭條件與資料損壞。 <span class="to">→</span> 修正損壞的警示資料。 <span class="to">→</span> 確認資料只剩 1 筆。</p></div></li><li><span class="d">06/23</span><div><b class="tt">修正私聊訊息越界</b><p>找到問題：九個 agent 裡的 agent-ZY 房間進行私聊時，其他八個 agent（九個裡除了 agent-ZY）的對話空間仍會收到訊息。 <span class="to">→</span> 加上私聊房間判斷，讓私聊訊息只留在該房間。 <span class="to">→</span> 修好。</p></div></li><li><span class="d">06/23</span><div><b class="tt">補上私聊路徑的視覺橋接</b><p>找到問題：私聊路徑原本跳過視覺橋接，帶圖片的訊息沒有進入視覺感知流程。 <span class="to">→</span> 在私聊路徑補上視覺橋接。 <span class="to">→</span> 修好。</p></div></li><li><span class="d">06/23</span><div><b class="tt">重啟服務讓視覺改動生效</b><p>找到問題：圖片辨識回報與實際視覺流程不一致，服務仍有修改前的進程在跑，私聊路徑沒有經過視覺橋接。 <span class="to">→</span> 重啟服務，讓視覺入口與私聊路徑使用新程式碼。 <span class="to">→</span> 重啟後視覺入口正常，並確認在跑新程式碼。後續發現另有修改前的進程，真實私聊仍未觸發視覺橋接，之後再次重啟才生效。</p></div></li><li><span class="d">06/24</span><div><b class="tt">修正對話紀錄附件圖片顯示與私聊視覺路徑</b><p>找到問題：對話紀錄看不到附件圖片，且仍有修改前的服務進程讓私聊未經過視覺橋接。 <span class="to">→</span> 前端加上圖片渲染、呼叫時帶入附件，並重啟服務。 <span class="to">→</span> 服務正常，私聊路徑會經過視覺橋接，對話紀錄也會顯示附件圖片。</p></div></li><li><span class="d">06/24</span><div><b class="tt">修正視覺通道同步阻塞</b><p>找到問題：視覺橋接同步阻塞、雲端視覺模型單佇列、事件迴圈被同步呼叫卡住，導致九個 agent 裡的 agent-ZY 在視覺完成前收到訊息並回「接收層是空的」。 <span class="to">→</span> 修改視覺通道，讓私聊走非同步、不阻塞事件迴圈，大廳群聊維持同步；並讓視覺服務支援以環境設定指定服務位址與存取設定。 <span class="to">→</span> 重啟後私聊視覺請求不阻塞事件迴圈；後續發現服務啟動時未自動載入環境設定，視覺服務的存取設定未生效，另條修正後才讓視覺請求走獨立通道。</p></div></li><li><span class="d">06/24</span><div><b class="tt">修正服務啟動未自動載入視覺服務設定</b><p>找到問題：服務啟動時沒有自動載入視覺服務設定，填入設定後不會生效。 <span class="to">→</span> 啟動時帶入視覺服務設定，讓視覺請求走獨立通道。 <span class="to">→</span> 服務帶著視覺服務設定啟動，視覺請求走獨立通道。</p></div></li></ol></details><details class="week" data-y="2026" data-m="06"><summary><span class="wk">2026/06/11～06/17</span><span class="cnt">5 條</span></summary><ol class="entries"><li><span class="d">06/17</span><div><b class="tt">被動記憶查詢</b><p>問題是記憶與回應偏被動、關鍵找記憶微弱 <span class="to">→</span> 檢查後確認記憶查詢工具已註冊、權限正常，瓶頸在呼叫端只把它當主動工具、要有理由才呼叫；因此修正配置與記憶工具，將記憶查詢提升為被動操作並加入被動記憶協定，讓關鍵記憶能在回應流程中被動被帶出，被動聯想層維持不動 <span class="to">→</span> <b class="res">結果：</b>兩處改動完成；實際召回效果還沒量。</p></div></li><li><span class="d">06/17</span><div><b class="tt">深度回憶機制</b><p>問題是對話越深，最初取用的 3 條記憶越不相關，agent 核心 runtime 不會回頭再找 <span class="to">→</span> 在回應生成的記憶操作區塊新增一層「先累積對話脈絡再搜尋」的深度回憶機制，確認插入點後完成改動 <span class="to">→</span> <b class="res">結果：</b>語法檢查通過；獨立驗證腳本 6 個測試全過，其中一項以實際查詢語句查九個裡的 agent-ZY 記憶庫，能搜出相關記憶。</p></div></li><li><span class="d">06/17</span><div><b class="tt">訊息工具連線檢查</b><p>問題是檢查 agent 之間的訊息工具時，初步連線數顯示 0/9 <span class="to">→</span> 在服務開啟後重查，修正連線狀態檢查方式，改以能反映實際通訊協定的方式探測 <span class="to">→</span> <b class="res">結果：</b>確認九個 agent 全部在線（9/9）。</p></div></li><li><span class="d">06/17</span><div><b class="tt">負責人發言到各 agent 的訊息管道</b><p>問題是後台看不到 agent 之間的對話紀錄，追查後確認跨進程的訊息傳遞沒有把負責人的發言廣播給各 agent <span class="to">→</span> 修正三處流程，新增負責人發言處理與跨進程廣播，讓各 agent 能收到負責人的發言 <span class="to">→</span> <b class="res">結果：</b>三處改動完成；重啟後驗證負責人的發言可送達九個裡的 agent-XX，並觸發該 agent 的自主回應與發言流程，這條發言訊息管道通了；但同日檢查情緒狀態時發現九個 agent 的情緒值皆為 0，導致原本要觸發 agent 之間自主互相對話的機制不會啟動，因此「負責人不在時 agent 也能互相對話」這項目標還沒達成。</p></div></li><li><span class="d">06/17</span><div><b class="tt">自主回應記憶的來源標記</b><p>問題是自主回應寫入記憶時缺少來源標記，觸發訊息也沒有被存下來 <span class="to">→</span> 修改記憶儲存流程，新增來源與觸發訊息欄位，讓自主回應產生的記憶能帶上歸屬 <span class="to">→</span> <b class="res">結果：</b>改動完成且語法檢查正確，實作上會存入兩筆帶歸屬的記憶；實際寫入與後續召回是否正確還沒量。</p></div></li></ol></details></div>
+<a class="backtop" href="#top">回到頁首 ↑</a>
+</div>
+<script>
+(function () {
+  function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  var weeks = all('details.week'), rows = all('.chips.months'), yrs = all('.yr'), ysel = document.querySelector('.ysel');
+  if (!weeks.length) return;
+  var state = { y: weeks[0].dataset.y, m: 'all' };
+  // show one year (and optionally one month); only the newest visible week stays open
+  function apply() {
+    var first = true;
+    weeks.forEach(function (w) {
+      w.hidden = !(w.dataset.y === state.y && (state.m === 'all' || w.dataset.m === state.m));
+      w.open = !w.hidden && first;
+      if (!w.hidden) first = false;
+    });
+    rows.forEach(function (r) {
+      r.hidden = r.dataset.y !== state.y;
+      Array.prototype.forEach.call(r.querySelectorAll('.chip'), function (c) {
+        c.setAttribute('aria-pressed', !r.hidden && c.dataset.m === state.m ? 'true' : 'false');
+      });
+    });
+    yrs.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.y === state.y ? 'true' : 'false'); });
+    if (ysel) ysel.value = state.y;
+  }
+  function setYear(y) { state.y = y; state.m = 'all'; apply(); }
+  yrs.forEach(function (b) { b.addEventListener('click', function () { setYear(b.dataset.y); }); });
+  if (ysel) ysel.addEventListener('change', function () { setYear(ysel.value); });
+  rows.forEach(function (r) {
+    Array.prototype.forEach.call(r.querySelectorAll('.chip'), function (c) {
+      c.addEventListener('click', function () { state.m = c.dataset.m; apply(); });
+    });
+  });
+  apply();
+})();
+</script>
+</body></html>
