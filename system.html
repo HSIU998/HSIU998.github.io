@@ -433,7 +433,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
 <div class="pagehead" id="system-top"><span class="label">Local AI system</span><h1>本地 AI 系統</h1>
 <p class="lead">個人專案：長期記憶多代理系統。程式由 AI 撰寫；定方向、寫規格和驗收標準、拆任務、驗收與上線決定由我負責。</p></div>
 <nav class="pagetoc" aria-label="本頁">
-  <a href="#cases">三個代表作</a><a href="#can">我能負責什麼</a><a href="#a-limits">還沒做到的</a><a href="#numbers">數字怎麼算</a><a href="#next">聯絡</a><a href="#appendix">附錄</a>
+  <a href="#cases">三個代表作</a><a href="#can">我能負責什麼</a><a href="#a-limits">還沒做到的</a><a href="#next">聯絡</a><a href="#appendix">附錄</a>
 </nav>
 <p class="honest"><b>這是什麼：</b>個人專案，不是商品，我自己每天在用。要解決的問題是：AI 換了模型、開了新視窗、被廠商下架，記憶和身分就跟著消失。這套系統把記憶和身分放在本地，由程式保證每一輪都送得到，模型隨時可以換（業界叫 Agent Memory）。</p>
 <section class="main-sec" id="cases">
@@ -455,8 +455,8 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
   <article class="case" id="case-ledger">
     <span class="label">案例 3 · 驗收</span>
     <h3>燈全綠，不等於好了</h3>
-    <dl><dt>問題</dt><dd>服務重開後燈全綠，用起來卻不對；第一批修復全部通過檢查，但那只證明「程式照寫的跑」，不證明用起來變好。</dd><dt>我的決定</dt><dd>先畫圖再施工；「確定好了」只算每天在用的系統的紀錄證明過的，測試副本過、離線重放過的一律算觀察期。第二批 20 項看兩組測試（記憶考卷 47 題、日常聊天 103 句）決定照常上線，有問題的那一項預設關著。</dd><dt>怎麼做</dt><dd>整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級登記成問題總表再分批修；每一項動手前先寫最終目標、量什麼、過關線。改動先在測試副本跑，守門程式擋住碰每天在用的系統的動作。</dd><dt>怎麼驗收</dt><dd>每次上線前跑閉環檢查，紅燈 0 才上，每次留還原快照；上線後看每天在用的系統的紀錄。</dd><dt>結果</dt><dd>修改紀錄累計 <b>282</b> 項修復；代理核心 340 條問題裡 <b>47</b> 條確定好了、<b>127</b> 條在觀察期、<b>7</b> 條碼在沒開／只在沙盒、<b>43</b> 條部分好了，不會全部算成「修好了」。正在影響運作的 120 條已動手 118 條（98%）。測試期間每天在用的系統寫入 0 筆。</dd><dt>還沒做到</dt><dd>觀察期 127 條還在量效果；還沒碰的 112 條多數是潛伏問題和死碼。另有幾條修法寫好了，但家裡的開關還關著、或只在測試副本，另外算，不算觀察期。</dd></dl>
-    <a class="more" href="#numbers">證據：下面「數字怎麼算」→</a>
+    <dl><dt>問題</dt><dd>服務重開後燈全綠，用起來卻不對；第一批修復全部通過檢查，但那只證明「程式照寫的跑」，不證明用起來變好。</dd><dt>我的決定</dt><dd>先畫圖再施工；「確定好了」只算每天在用的系統的紀錄證明過的，測試副本過、離線重放過的一律算觀察期。第二批 20 項看兩組測試（記憶考卷 47 題、日常聊天 103 句）決定照常上線，有問題的那一項預設關著。</dd><dt>怎麼做</dt><dd>整套系統畫成工程藍圖（214 個檔對照真實執行紀錄），問題分級登記成問題總表再分批修；每一項動手前先寫最終目標、量什麼、過關線。改動先在測試副本跑，守門程式擋住碰每天在用的系統的動作。</dd><dt>怎麼驗收</dt><dd>每次上線前跑閉環檢查，紅燈 0 才上，每次留還原快照；上線後看每天在用的系統的紀錄。</dd><dt>結果</dt><dd>每次上線前跑閉環檢查、留還原快照；修得怎麼樣照每天在用的系統的紀錄算，每週寫在<a href="devlog.html">開發日誌</a>。</dd><dt>還沒做到</dt><dd>有些修改上線後還在量效果；潛伏問題和死碼多數還沒動。</dd></dl>
+    <a class="more" href="devlog.html">證據：開發日誌 →</a>
   </article>
   </div>
   <div class="honest aierr" id="ai-errors"><b>程式由 AI 寫，我怎麼抓它的錯：三個例子</b>
@@ -476,7 +476,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
       <tr><td><b>記憶檢索</b></td><td>程式判斷要不要查、混合評分、去重重排、開口前由程式代撈</td><td>代撈 16／16、47 題記憶考卷</td><td>正式設定 26%，過關線 50% 還沒過</td></tr>
       <tr><td><b>本地部署與換模型</b></td><td>向量服務跑 Intel NPU、失敗退回 CPU；本機 27B 跑背景工作；固定啟動順序；對外只開 VPN；雲端與本機模型同一個介面</td><td>附錄 4、附錄 10</td><td>完全搬回本機要等新的模型伺服器</td></tr>
       <tr><td><b>維運</b></td><td>每天自動備份、每日體檢只報新問題、看門狗叫回、告警不重複洗版</td><td>每日體檢紀錄、附錄 6</td><td>看門狗的修法 10/23 上線，觀察期</td></tr>
-      <tr><td><b>帶 AI 開發與驗收</b></td><td>定方向和驗收標準、拆任務給多個 AI 工作視窗、交回來的逐條對程式碼核對、決定上不上線（<a href="#ai-errors">抓到 AI 錯的三個例子</a>）</td><td>修改紀錄 282 項；一次研究擋下 3 條錯的建議</td><td>程式由 AI 寫；不做模型訓練或演算法研究</td></tr>
+      <tr><td><b>帶 AI 開發與驗收</b></td><td>定方向和驗收標準、拆任務給多個 AI 工作視窗、交回來的逐條對程式碼核對、決定上不上線（<a href="#ai-errors">抓到 AI 錯的三個例子</a>）</td><td>一次研究擋下 3 條錯的建議</td><td>程式由 AI 寫；不做模型訓練或演算法研究</td></tr>
     </tbody>
   </table></div>
   <figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 440" role="img" aria-labelledby="t2 d2">
@@ -543,400 +543,6 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
     <p class="honest">這頁的證據都去掉了名字和私人內容。每天在用的系統，服務只聽本機；對外只開 VPN，只有我自己連得進來，不對外開放操作。</p>
     <a class="backtop" href="#top">回到頁首 ↑</a>
   </section>
-<section class="main-sec" id="numbers">
-  <h2>數字怎麼算</h2>
-  <p class="honest">一個問題要經過這幾步才算「確定好了」：登記進問題總表 → 動手前寫最終目標和過關線 → 測試副本驗過 → 上線、留還原快照（觀察期）→ 每天在用的系統的紀錄證明目標達到。只證明程式有在跑，不算目標達到。</p>
-  <div class="tablewrap"><table class="numtable">
-    <thead><tr><th>範圍</th><th>問題數</th><th>確定好了</th><th>觀察期</th><th>碼在沒開／只在沙盒</th><th>部分好了</th><th>沒過</th><th>還沒碰</th></tr></thead>
-    <tbody>
-      <tr><td>代理核心（每天在跑的系統）</td><td>340</td><td>47</td><td>127</td><td>7</td><td>43</td><td>4</td><td>112</td></tr>
-      <tr><td>世界模擬引擎（還沒接日常）</td><td>93</td><td>0</td><td>10</td><td>1</td><td>11</td><td>0</td><td>71</td></tr>
-      <tr><td><b>合計</b></td><td><b>433</b></td><td><b>47</b></td><td><b>137</b></td><td><b>8</b></td><td><b>54</b></td><td><b>4</b></td><td><b>183</b></td></tr>
-    </tbody>
-  </table></div>
-  <p class="caption">截至 2026-10-26 16:30，程式從問題總表＋修改紀錄算出，不手改。修改紀錄 282 項是「動了幾刀」，不是問題數：一刀可能碰到好幾個問題，一個問題也可能要好幾刀。</p>
-  <p class="caption">世界模擬是另一個研究，目前沒有接到日常系統；這頁只放它的問題數，細節在<a href="worldsim.html">世界樹頁</a>。</p>
-  <details class="basis"><summary>長條圖：正在影響運作的問題處理到哪</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 300" role="img" aria-labelledby="t6 d6">
-<title id="t6">先看正在影響運作的問題</title>
-<desc id="d6">正在影響運作的 120 條：確定好了 24、觀察期 59、碼在沒開／只在沙盒 5、部分好了 27、沒過 3、還沒碰 2，已動手 118 條。潛伏與死碼 219 條：確定好了 23、觀察期 68、碼在沒開／只在沙盒 2、部分好了 16、沒過 1、還沒碰 109。另有 1 條改不到。</desc>
-<text class="bt" x="20" y="24">正在影響運作的 120 條：已經動手 118 條（98%），還沒碰 2 條</text>
-<rect class="c-ok" x="20.0" y="36" width="72.5" height="26" rx="4"><title>確定好了 24 條</title></rect>
-<text class="lbl" x="57.3" y="82" text-anchor="middle">確定好了 <tspan class="numt">24</tspan></text>
-<rect class="c-obs" x="94.5" y="36" width="181.2" height="26" rx="4"><title>觀察期 59 條</title></rect>
-<text class="lbl" x="186.1" y="82" text-anchor="middle">觀察期 <tspan class="numt">59</tspan></text>
-<rect class="c-noeff" x="277.7" y="36" width="13.5" height="26" rx="4"><title>碼在沒開／只在沙盒 5 條</title></rect>
-<text class="lbl" x="325.5" y="118">碼在沒開／只在沙盒 <tspan class="numt">5</tspan></text>
-<path class="flow" d="M285.5,64 L285.5,113 L321.5,113"/>
-<rect class="c-part" x="293.2" y="36" width="81.8" height="26" rx="4"><title>部分好了 27 條</title></rect>
-<text class="lbl" x="335.2" y="82" text-anchor="middle">部分好了 <tspan class="numt">27</tspan></text>
-<rect class="c-fail" x="377.1" y="36" width="7.3" height="26" rx="4"><title>沒過 3 條</title></rect>
-<text class="lbl" x="421.7" y="100">沒過 <tspan class="numt">3</tspan></text>
-<path class="flow" d="M381.7,64 L381.7,95 L417.7,95"/>
-<rect class="c-none" x="386.4" y="36" width="4.2" height="26" rx="4"><title>還沒碰 2 條</title></rect>
-<text class="lbl" x="400.6" y="54">還沒碰 <tspan class="numt">2</tspan></text>
-<text class="bt" x="20" y="152">潛伏與死碼 219 條：已經動手 110 條，其餘 109 條排程清理中</text>
-<rect class="c-ok" x="20.0" y="164" width="69.4" height="26" rx="4"><title>確定好了 23 條</title></rect>
-<text class="lbl" x="55.7" y="210" text-anchor="middle">確定好了 <tspan class="numt">23</tspan></text>
-<rect class="c-obs" x="91.4" y="164" width="209.1" height="26" rx="4"><title>觀察期 68 條</title></rect>
-<text class="lbl" x="197.0" y="210" text-anchor="middle">觀察期 <tspan class="numt">68</tspan></text>
-<rect class="c-noeff" x="302.6" y="164" width="4.2" height="26" rx="4"><title>碼在沒開／只在沙盒 2 條</title></rect>
-<text class="lbl" x="345.7" y="246">碼在沒開／只在沙盒 <tspan class="numt">2</tspan></text>
-<path class="flow" d="M305.7,192 L305.7,241 L341.7,241"/>
-<rect class="c-part" x="308.8" y="164" width="47.7" height="26" rx="4"><title>部分好了 16 條</title></rect>
-<text class="lbl" x="319.6" y="210" text-anchor="middle">部分好了 <tspan class="numt">16</tspan></text>
-<rect class="c-fail" x="358.4" y="164" width="2.0" height="26" rx="4"><title>沒過 1 條</title></rect>
-<text class="lbl" x="400.0" y="228">沒過 <tspan class="numt">1</tspan></text>
-<path class="flow" d="M360.0,192 L360.0,223 L396.0,223"/>
-<rect class="c-none" x="361.6" y="164" width="336.4" height="26" rx="4"><title>還沒碰 109 條</title></rect>
-<text class="lbl" x="530.8" y="210" text-anchor="middle">還沒碰 <tspan class="numt">109</tspan></text>
-<text class="small" x="20" y="282">另有 1 條改不到。兩條長條同一個比例尺；截至 2026-10-26 16:30，分類由程式從問題總表＋修改紀錄算出。</text>
-</svg></div><figcaption>先看會出事的那一塊：正在影響運作的問題處理到哪了。10/24 → 10/25 16:30：還沒碰 140 → 113 條（修改刀數見下方摘要）。</figcaption></figure></div></details><details class="basis ledger"><summary>修改紀錄摘要（282 刀；程式從帳本產生，日期取自版本紀錄）</summary><div>
-<p class="caption">「帳上結果」是每一刀當時記的結果；「確定好了」的分類另外照 10/24 的規則算：只有每天在用的系統的紀錄證明過才算，測試副本裡的「過」算觀察期。每一刀都有「最終目標／量什麼／結果／依據」四欄；這裡只放編號、問題群、結果和在哪驗的。目標那句只有通過過濾（不含名字、路徑、程式識別字）的才顯示，其餘 258 刀只顯示類別。完整帳本面試時可在本機展示。有日期的 268 刀，分布在 5 天：10-21 9 刀、10-22 82 刀、10-23 92 刀、10-24 31 刀、10-25 54 刀。</p>
-<div class="tablewrap"><table><thead><tr><th>日期</th><th>刀號</th><th>問題群</th><th>帳上結果</th><th>在哪驗的</th><th>目標</th></tr></thead><tbody>
-<tr><td>10-21 20:25</td><td>W2-base</td><td>程式代替角色產生內容、因果紀錄、提示詞體積</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-21 23:44</td><td>B5-DEAD-EE2</td><td>記憶檢索</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-21 23:44</td><td>W1</td><td>經驗蒸餾</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-21 23:48</td><td>W2a</td><td>提示詞體積</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-21 23:50</td><td>W2b</td><td>發話者標記</td><td>過</td><td>每天在用的系統</td><td>記憶上寫的「誰說的」跟真的說話的人一致</td></tr>
-<tr><td>10-21 23:52</td><td>W3a</td><td>監控與告警</td><td>過</td><td>每天在用的系統</td><td>新告警不被舊的蓋掉，兩邊同時寫也不互蓋</td></tr>
-<tr><td>10-21 23:53</td><td>W3b</td><td>情緒模型、動機參數</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-21 23:57</td><td>W3c</td><td>動機參數</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-21 23:59</td><td>W3d</td><td>模板被寫成記憶、記憶歸屬錯置</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 00:01</td><td>W3e</td><td>過期狀態當成現在、監控與告警</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 00:04</td><td>B5-DEAD-NF4</td><td>監控與告警</td><td>過</td><td>每天在用的系統</td><td>綁上了才說已啟動／就緒</td></tr>
-<tr><td>10-22 00:04</td><td>W3f</td><td>監控與告警</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 00:24</td><td>W4a</td><td>存取安全</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 00:24</td><td>W4b</td><td>發話者標記、提示詞體積、存取安全</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 00:33</td><td>W4c</td><td>角色發言被刪改</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 01:00</td><td>W4d</td><td>角色發言被刪改</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 02:23</td><td>W5a</td><td>記憶檢索、監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:12</td><td>W6a</td><td>模板被寫成記憶</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:19</td><td>W6b</td><td>記憶檢索</td><td>沒過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:22</td><td>W6c</td><td>記憶檢索</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:27</td><td>W6d</td><td>系統訊息擠占上下文、過期狀態當成現在、記憶檢索</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:31</td><td>W6e</td><td>記憶檢索</td><td>沒過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:44</td><td>W6f</td><td>記憶檢索</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:47</td><td>W6g</td><td>記憶檢索</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 03:49</td><td>W6h</td><td>記憶檢索</td><td>只驗了機制</td><td>每天在用的系統</td><td>向量引擎被誰定型、誰的要求被丟掉，log 說得出來</td></tr>
-<tr><td>10-22 04:26</td><td>Wv3a</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:27</td><td>W6-L1</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:27</td><td>W6-L2</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:27</td><td>Wv3b</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:28</td><td>Wv3c</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:29</td><td>Wv3d</td><td>過期狀態當成現在</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:32</td><td>W6-L3</td><td>提示詞體積</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:33</td><td>W6-L4</td><td>角色發言被刪改</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:36</td><td>W6-L5</td><td>快照與存檔</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 04:41</td><td>W6i</td><td>系統訊息擠占上下文、記憶檢索</td><td>沒過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 05:03</td><td>DR5-a</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 05:46</td><td>W6i-off</td><td>系統訊息擠占上下文</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 06:09</td><td>RGLOB-1</td><td>記憶歸屬錯置、記憶檢索</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-22 07:50</td><td>G11-Bp</td><td>快照與存檔</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 07:58</td><td>B3-1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 07:58</td><td>B3-ID3</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 07:59</td><td>B3-RT1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 08:01</td><td>B3-2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 08:02</td><td>B3-EG1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 08:04</td><td>B3-PA2</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 08:05</td><td>B3-BE1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 08:11</td><td>B3-A3</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 08:24</td><td>B3-PULSE</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:15</td><td>B3-Q1B1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:16</td><td>B3-H1</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:17</td><td>B3-CHRON</td><td>存取安全</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:23</td><td>B3R1-1</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:27</td><td>B3-WRITE-1</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:27</td><td>B3R1-2</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:29</td><td>B3R1-3</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:32</td><td>B3-WRITE-2</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:35</td><td>B3-WRITE-3</td><td>角色發言被刪改、情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 10:35</td><td>B3-WRITE-4</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 11:10</td><td>B3PA3-1</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 11:13</td><td>B3PA3-2</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 11:23</td><td>B3PA3-3</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 11:24</td><td>B3PA3-4</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 12:14</td><td>B3FRAG-0</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 12:16</td><td>FRAGLINK-4</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 12:20</td><td>B3FRAG-1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 12:26</td><td>B3FRAG-3</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 12:31</td><td>B3FRAG-6</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 12:54</td><td>B3-WRITE-1-fix</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 13:33</td><td>B3-F5</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:41</td><td>B3CAUSAL-K1</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:43</td><td>B3-WG1</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:43</td><td>B3CAUSAL-K2</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:47</td><td>B3-G2</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:48</td><td>B3CAUSAL-K4</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:49</td><td>B3CAUSAL-C1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:50</td><td>B3-N1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:52</td><td>B3-IN2-P8</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 19:56</td><td>B3-IN2-backlog</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 20:10</td><td>B3-JUDGE-J1</td><td>模板被寫成記憶、記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 20:10</td><td>B3-JUDGE-J2</td><td>模板被寫成記憶、記憶檢索</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 21:33</td><td>B3-IN2-D</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 21:35</td><td>B3-IN2-A23</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 21:36</td><td>B3-IN2-B</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 21:40</td><td>B3-IN2-C</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 21:42</td><td>B3-JUDGE-J1v2</td><td>模板被寫成記憶、記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 22:07</td><td>B3-N1v2</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 22:22</td><td>B3-IN2-HUIYIN</td><td>記憶歸屬錯置</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 23:17</td><td>B4-H2</td><td>系統訊息擠占上下文</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 23:25</td><td>B4-B5</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 23:26</td><td>B4-NF19</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-22 23:28</td><td>B4-PC1</td><td>角色發言被刪改</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 00:04</td><td>B4-B5-v2</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 00:56</td><td>B4-NF19-v3after</td><td>程式代替角色產生內容</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 02:11</td><td>B5-DEAD-B3emo</td><td>人格一致性</td><td>過</td><td>每天在用的系統</td><td>白算不再每輪做</td></tr>
-<tr><td>10-23 02:14</td><td>B4-D6-retire</td><td>人格一致性</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 02:14</td><td>B4-NF15-guard</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 02:14</td><td>B4-NF15-migrate</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 03:38</td><td>B5-SV1</td><td>人格一致性</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:08</td><td>B5-DEAD-MARK</td><td>新發現（未歸群）</td><td>過</td><td>測試副本</td><td>看起來死、其實是別條病的零件或回退路的碼，之後清的人一眼看得到「勿清」</td></tr>
-<tr><td>10-23 04:09</td><td>B5-DEAD-A1b</td><td>提示詞體積、快照與存檔</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:09</td><td>B5-DEAD-A2d</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>註解改成「每 720 跳（約 61～69 分鐘）」，不再寫每小時</td></tr>
-<tr><td>10-23 04:09</td><td>B5-DEAD-A2wis</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>智慧洞察燈印實際拿到幾條（舊字樣留作前綴）</td></tr>
-<tr><td>10-23 04:09</td><td>B5-DEAD-B2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:09</td><td>B5-DEAD-D1q</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:09</td><td>B5-DEAD-ED1</td><td>經驗蒸餾</td><td>部分</td><td>測試副本</td><td>經驗蒸餾類別說明寫明「審核前意圖」這條路從沒收到料</td></tr>
-<tr><td>10-23 04:09</td><td>B5-DEAD-H4</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:10</td><td>B5-DEAD-C1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:10</td><td>B5-DEAD-WH1</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:25</td><td>B5-RECALL-1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:28</td><td>B5-RECALL-2</td><td>系統訊息擠占上下文、記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:36</td><td>B5-RECALL-3</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:43</td><td>B5-RECALL-4</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:48</td><td>B5-RECALL-5</td><td>模板被寫成記憶、記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 04:49</td><td>B5-RECALL-6</td><td>過期狀態當成現在</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:08</td><td>B6-RECALL-1a</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:10</td><td>B6-PREFS-1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:10</td><td>B6-PREFS-2</td><td>模板被寫成記憶</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:10</td><td>B6-PREFS-3</td><td>模板被寫成記憶</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:11</td><td>B6-RECALL-1b</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:17</td><td>B6-RECALL-2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:24</td><td>B6-RECALL-3</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:24</td><td>B6-RECALL-4</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 06:31</td><td>B6-RECALL-5</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 07:39</td><td>B7-HUISHENG-1a</td><td>模板被寫成記憶</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 07:39</td><td>B7-HUISHENG-1b</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 07:39</td><td>B7-HUISHENG-2</td><td>模板被寫成記憶</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 07:39</td><td>B7-HUISHENG-3</td><td>模板被寫成記憶</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 07:39</td><td>B7-HUISHENG-4</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:40</td><td>SC0c-1</td><td>存取安全</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:40</td><td>SC0c-2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:44</td><td>SC0b-1</td><td>存取安全</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:44</td><td>SC0b-2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:44</td><td>SC0b-3</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:44</td><td>SC0b-4</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:54</td><td>SC0a-1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:54</td><td>SC0a-2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 08:54</td><td>SC0a-3</td><td>背景維護與死碼</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 09:09</td><td>SC0c-3</td><td>存取安全</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 09:16</td><td>SC1c-1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 11:55</td><td>SC0b-5</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 11:5x</td><td>SC0a-4</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 11:5x</td><td>SC1c-2</td><td>新發現（未歸群）</td><td>量不到</td><td>—</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT1a-1</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT1a-2</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT1a-3</td><td>監控與告警</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT1b-1</td><td>世界模擬</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT1b-2</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT1b-3</td><td>新發現（未歸群）</td><td>過</td><td>每天在用的系統</td><td>讀碼的人不會以為紀元數字有被拿去推情緒；行為一位元不變</td></tr>
-<tr><td>10-23 12:04</td><td>WT1b-4</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>不留「看起來在算情緒、其實沒人叫」的直接寫結果表；行為不變</td></tr>
-<tr><td>10-23 12:04</td><td>WT1b-5</td><td>監控與告警、世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2a-1</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2b-1</td><td>世界模擬</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2b-2</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2b-3</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2b-4</td><td>世界模擬</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2c-1</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2c-2</td><td>監控與告警</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2c-3</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2d-1</td><td>世界模擬</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT2d-2</td><td>新發現（未歸群）</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT3-0</td><td>世界模擬</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>10-23 12:04</td><td>WT3-1</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>每天在用的系統</td><td>世界樹的物理只有一份「規則」，原版、向量化都拿去對它；規則本身可以被尺驗（守恆、對稱、跟收斂解一致）。這一刀只寫定義</td></tr>
-<tr><td>10-23 12:08</td><td>SC1a-1</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 12:08</td><td>SC1a-2</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 12:08</td><td>SC1a-3</td><td>動機參數</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 12:08</td><td>SC1a-4</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 12:08</td><td>SC1a-5</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 12:08</td><td>SC1a-6</td><td>新發現（未歸群）</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 12:08</td><td>SC1a-7</td><td>動機參數</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:29</td><td>D2-1</td><td>記憶檢索、監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:54</td><td>SC1b-1</td><td>監控與告警</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:54</td><td>SC1b-2</td><td>監控與告警</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:54</td><td>SC1b-3</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:54</td><td>SC1b-4</td><td>新發現（未歸群）</td><td>過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:55</td><td>SC1b-5</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:57</td><td>SC2a-1</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:57</td><td>SC2a-2</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:57</td><td>SC2a-3</td><td>動機參數</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 19:57</td><td>SC2a-4</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 22:38</td><td>SC3b-1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 22:43</td><td>SC3c-1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 22:58</td><td>SC3a-1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-23 22:58</td><td>SC3d-1</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 00:42</td><td>SC3c-2</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 00:42</td><td>SC3d-2</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 01:24</td><td>SC3e-1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 01:28</td><td>SC3d-3</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 03:57</td><td>SC4-D5causal</td><td>因果紀錄</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 03:58</td><td>SC4-B3causal</td><td>因果紀錄</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 03:58</td><td>SC4-WG7pip</td><td>背景維護與死碼</td><td>過（測試副本）</td><td>測試副本</td><td>開機不再載兩個沒人用的世界樹模組</td></tr>
-<tr><td>10-24 03:59</td><td>SC4-B1mem</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:00</td><td>SC4-NF8part</td><td>監控與告警</td><td>過（離線重放）</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:02</td><td>SC4-LS3hub</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:02</td><td>SC4-NF10hs</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:02</td><td>SC4-WG4env</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:03</td><td>SC4-H5forced</td><td>提示詞體積</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:03</td><td>SC4-WG2touch</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:03</td><td>SC4-WG6ptr</td><td>背景維護與死碼</td><td>過（測試副本）</td><td>測試副本</td><td>每次刷新少一次白讀空的指針表，撈記憶快取照清</td></tr>
-<tr><td>10-24 04:04</td><td>SC4-WG5wis</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:05</td><td>SC4-S1refl</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:06</td><td>SC4-NF11port</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:06</td><td>SC4-OG1anchor</td><td>監控與告警</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:07</td><td>SC4-I1gate</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>看 log 就知道每輪智慧洞察有沒有取、沒取是什麼原因</td></tr>
-<tr><td>10-24 04:08</td><td>SC4-G2sub</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:09</td><td>SC4-B5wis</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:09</td><td>SC4-OG2sb</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>現況板燈反映模型軌有沒有在失敗</td></tr>
-<tr><td>10-24 04:10</td><td>SC4-E3gwlog</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:11</td><td>SC4-ID1guard</td><td>監控與告警</td><td>過（測試副本）</td><td>測試副本</td><td>審計寫實際檢查了什麼；閘擋不了要說出來</td></tr>
-<tr><td>10-24 04:12</td><td>SC4-E3emo-gw</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:12</td><td>SC4-E3emo-valve</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:12</td><td>SC4-WM1load</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:14</td><td>SC4-B2note</td><td>經驗蒸餾</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:16</td><td>SC4-WL1dir</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-24 04:20</td><td>SC4-LS2sentinel</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:14</td><td>FIX-RECALL-0</td><td>新發現（未歸群）</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:15</td><td>FIX-RECALL-G1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:18</td><td>FIX-RECALL-F2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:18</td><td>FIX-RECALL-I1</td><td>記憶檢索</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:19</td><td>FIXPROMPT-B1</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:19</td><td>FIXPROMPT-E2</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:19</td><td>FIXPROMPT-E4</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:19</td><td>FIXPROMPT-NF1</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:20</td><td>FIX-RECALL-A1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>語意召回沒在動時看得見原因；沒撈到不冒充撈到</td></tr>
-<tr><td>10-25 01:20</td><td>FIX-RECALL-A2</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:26</td><td>FG-B2</td><td>過期狀態當成現在</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:26</td><td>FG-D1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:26</td><td>FG-F2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:26</td><td>FG-GX1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:26</td><td>FG-VS1</td><td>模板被寫成記憶</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:34</td><td>FG-NF63</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:34</td><td>FIX-PREFETCH-NF19-T2</td><td>程式代替角色產生內容</td><td>沒過</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 01:34</td><td>FIX-PREFETCH-NF67</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:29</td><td>FLC-NP1</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>就算有人把欄位名補對，沒量測資料時批次也不會被調；有資料時調整有上下界</td></tr>
-<tr><td>10-25 02:30</td><td>FLC-EA1</td><td>監控與告警</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:30</td><td>FLC-WS3</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:31</td><td>FLC-DL23</td><td>任務委派</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:32</td><td>FLC-HR1</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:32</td><td>FLC-PC4</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:35</td><td>FLA-B2</td><td>存取安全</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:37</td><td>FLA-I3</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:37</td><td>FLA-PL1</td><td>背景維護與死碼</td><td>只驗了機制</td><td>測試副本</td><td>設定檔寫的權重就是實際用的權重；不合法時看得到，不靜默換掉</td></tr>
-<tr><td>10-25 02:37</td><td>FLA-PL2</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:39</td><td>FLA-A2</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:39</td><td>FLA-A3</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:39</td><td>FLA-IE1</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:39</td><td>FLA-LT1</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:41</td><td>FIX-LEI-B-A5</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:41</td><td>FIX-LEI-B-AL2</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:41</td><td>FIX-LEI-B-EH1</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>存檔真的失敗時不安靜丟掉：真的再存、存成功才算成功、全失敗有告警，上一份檔不壞（原子換檔本來就有）。</td></tr>
-<tr><td>10-25 02:41</td><td>FIX-LEI-B-GT1</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:41</td><td>FIX-LEI-B-NF60</td><td>情緒模型</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:41</td><td>FIX-LEI-B-RT8</td><td>主動對話</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 02:41</td><td>FIX-LEI-B-WM2</td><td>經驗蒸餾</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:20</td><td>F2G1</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:25</td><td>F2G1-P</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:26</td><td>FIX10-NF27</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:26</td><td>FIX10-NF29</td><td>人格一致性</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:28</td><td>F2G1-U</td><td>記憶檢索</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:29</td><td>FIX10-C1-SRC</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:29</td><td>FIX10-RT6-SRC</td><td>程式代替角色產生內容</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:30</td><td>FIX10-C1-INDEP</td><td>因果紀錄</td><td>只驗了機制</td><td>測試副本</td><td>因果強度不再被一個自己驗自己的 100% 放大兩成；沒有獨立證據就不調權重（有因才有果）</td></tr>
-<tr><td>10-25 05:31</td><td>FIX10-QB3</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:33</td><td>FIX10-DS1</td><td>動機參數</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:39</td><td>FIX10-F2B</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>任何一種寫入請求，閘道都回得出「有沒有寫進去」，不會一個位元組都不回</td></tr>
-<tr><td>10-25 05:39</td><td>FIX10-LIVE</td><td>過期狀態當成現在、記憶檢索、監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:39</td><td>FIX10-WS2</td><td>監控與告警</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:39</td><td>NF1-RT</td><td>發話者標記</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>10-25 05:40</td><td>FIX10-E2-PER</td><td>提示詞體積</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>未記</td><td>B5-DEAD-A1env</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>未記</td><td>B5-DEAD-G1</td><td>記憶歸屬錯置</td><td>過</td><td>每天在用的系統</td><td>知道合成工具寫了哪裡</td></tr>
-<tr><td>未記</td><td>B6-NF32-1</td><td>系統訊息擠占上下文</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>未記</td><td>B6-PREFS-4</td><td>模板被寫成記憶</td><td>還沒碰</td><td>—</td><td>—</td></tr>
-<tr><td>未記</td><td>B6-PREFS-5</td><td>過期狀態當成現在</td><td>部分</td><td>測試副本</td><td>—</td></tr>
-<tr><td>未記</td><td>FIX-LEI-B-WF2</td><td>因果紀錄</td><td>量不到</td><td>測試副本</td><td>—</td></tr>
-<tr><td>未記</td><td>S1-op</td><td>記憶歸屬錯置</td><td>部分</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>未記</td><td>SC1f-1</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>未記</td><td>SC1f-2</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>未記</td><td>W1-env-K1</td><td>人格一致性</td><td>過</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>未記</td><td>W1-env-RT11</td><td>提示詞體積</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>未記</td><td>W1-env-RT5</td><td>主動對話</td><td>只驗了機制</td><td>測試副本</td><td>—</td></tr>
-<tr><td>未記</td><td>W5b</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-<tr><td>未記</td><td>W5c</td><td>監控與告警</td><td>只驗了機制</td><td>每天在用的系統</td><td>—</td></tr>
-</tbody></table></div></div></details><details class="basis"><summary>更早的修改紀錄（2026-02～10，按月）</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 220" role="img" aria-labelledby="t7 d7">
-<title id="t7">程式註解裡的修改記號（按月）</title>
-<desc id="d7">02 月 5、03 月 5、04 月 13、05 月 0、06 月 0、07 月 247、08 月 261、09 月 8、10 月 330。</desc>
-<line class="axis" x1="40" y1="180" x2="700" y2="180"/>
-<rect class="bar-steel" x="54.7" y="177.7" width="44.0" height="2.3" rx="4"><title>2026 年 2 月：5 個</title></rect>
-<text class="lbl" x="76.7" y="171.7" text-anchor="middle"><tspan class="numt">5</tspan></text>
-<text class="small" x="76.7" y="198" text-anchor="middle">2 月</text>
-<rect class="bar-steel" x="128.0" y="177.7" width="44.0" height="2.3" rx="4"><title>2026 年 3 月：5 個</title></rect>
-<text class="lbl" x="150.0" y="171.7" text-anchor="middle"><tspan class="numt">5</tspan></text>
-<text class="small" x="150.0" y="198" text-anchor="middle">3 月</text>
-<rect class="bar-steel" x="201.3" y="174.1" width="44.0" height="5.9" rx="4"><title>2026 年 4 月：13 個</title></rect>
-<text class="lbl" x="223.3" y="168.1" text-anchor="middle"><tspan class="numt">13</tspan></text>
-<text class="small" x="223.3" y="198" text-anchor="middle">4 月</text>
-<text class="lbl" x="296.7" y="174.0" text-anchor="middle"><tspan class="numt">0</tspan></text>
-<text class="small" x="296.7" y="198" text-anchor="middle">5 月</text>
-<text class="lbl" x="370.0" y="174.0" text-anchor="middle"><tspan class="numt">0</tspan></text>
-<text class="small" x="370.0" y="198" text-anchor="middle">6 月</text>
-<rect class="bar-steel" x="421.3" y="67.7" width="44.0" height="112.3" rx="4"><title>2026 年 7 月：247 個</title></rect>
-<text class="lbl" x="443.3" y="61.7" text-anchor="middle"><tspan class="numt">247</tspan></text>
-<text class="small" x="443.3" y="198" text-anchor="middle">7 月</text>
-<rect class="bar-steel" x="494.7" y="61.4" width="44.0" height="118.6" rx="4"><title>2026 年 8 月：261 個</title></rect>
-<text class="lbl" x="516.7" y="55.4" text-anchor="middle"><tspan class="numt">261</tspan></text>
-<text class="small" x="516.7" y="198" text-anchor="middle">8 月</text>
-<rect class="bar-steel" x="568.0" y="176.4" width="44.0" height="3.6" rx="4"><title>2026 年 9 月：8 個</title></rect>
-<text class="lbl" x="590.0" y="170.4" text-anchor="middle"><tspan class="numt">8</tspan></text>
-<text class="small" x="590.0" y="198" text-anchor="middle">9 月</text>
-<rect class="bar-steel" x="641.3" y="30.0" width="44.0" height="150.0" rx="4"><title>2026 年 10 月：330 個</title></rect>
-<text class="lbl" x="663.3" y="24.0" text-anchor="middle"><tspan class="numt">330</tspan></text>
-<text class="small" x="663.3" y="198" text-anchor="middle">10 月</text>
-<text class="small" x="40" y="16">2026 年，程式註解裡標了日期的修改記號（同一行只算一次）</text>
-</svg></div><figcaption>帳本是 10/21 才開始記的；在那之前，修改是寫在程式註解裡、標了日期的記號。這裡只算家裡核心程式（不含備份、虛擬環境、一次性工具）的註解，同一行只算一次，共 869 個；拿 7/12～8/21 對照開發歷程寫的「約 540 個」，這次算出 505 個。另外 2 月的版本紀錄有 156 次提交（之後到 10 月才又交進版本紀錄）。只有數量，不放內容。</figcaption></figure></div></details>
-  <div class="stats">
-    <div class="stat"><b>340</b><span>個問題找出來、分級、分批修；每天在用的系統正式更新 14 次、另補做 3 次，每次先在測試副本驗過、留還原快照（共 17 份）</span></div>
-    <div class="stat"><b>0</b><span>筆每天在用的系統寫入：測試期間守門程式擋下 17 次寫入、9 次碰正式服務</span></div>
-  </div>
-  <details class="basis"><summary>這兩個數字的依據</summary><div>
-    <span>340：問題總表（截至 2026-10-26 16:30），2026-10-21 從 118 份子系統藍圖逐條抽出第一版，之後新發現的陸續登記；每個問題都有編號、追得回它出自哪一份藍圖。還沒碰的 112 條裡，89 條可以直接改、14 條標「改之前要先評估對 agent 的影響」、9 條等我裁決。世界模擬引擎的 93 條另外登記，不在這 340 條裡（合計 433）。</span>
-    <span>17 份：照每次更新前留的還原快照數；其中 14 次是照編號算的正式更新（第 1～14 次），3 次是不另編號的補做（例如換向量服務、退回後重做），2026-10-22 01:33、02:24、02:34、05:49、06:14、22:51，10-23 01:31、02:34、05:27、07:15、07:52、21:42，10-24 02:29、23:21，10-25 04:26、07:44、23:49；每一次都先留還原快照。10-23 21:42 那次合併 17 個修改包，每包先在測試副本各自驗過、合併後閉環檢查紅燈 0；10-23 05:27 那次上線前，測試副本整輪 53／53 輪、0 個錯誤。</span>
-    <span>0 筆：測試副本的守門紀錄，2026-10-21 08:17 到 10-22 06:09 之間，擋下寫入 17 次、碰正式服務 9 次、啟動正式行程 3 次，放行的正式寫入 0 次。</span>
-  </div></details>
-  <p class="caption">服務重開後走哪條路、多快就緒（燈全綠但用起來不對那次），寫在<a href="fae.html#a-cases">設備／FAE 頁的異常處理紀錄</a>。</p><details class="basis"><summary>全部 340 條的六類（依據）</summary><div><figure class="fig"><div class="figwrap"><svg class="fig-svg" viewBox="0 0 720 140" role="img" aria-labelledby="t3 d3">
-<title id="t3">問題總表 340 條的處理狀態</title>
-<desc id="d3">確定好了 47、觀察期 127、碼在沒開／只在沙盒 7、部分好了 43、沒過 4、還沒碰 112。</desc>
-<rect class="c-ok" x="20.0" y="30" width="92.0" height="28" rx="4"><title>確定好了 47 條</title></rect>
-<text class="lbl" x="67.0" y="82" text-anchor="middle">確定好了 <tspan class="numt">47</tspan></text>
-<rect class="c-obs" x="114.0" y="30" width="252.0" height="28" rx="4"><title>觀察期 127 條</title></rect>
-<text class="lbl" x="241.0" y="82" text-anchor="middle">觀察期 <tspan class="numt">127</tspan></text>
-<rect class="c-noeff" x="368.0" y="30" width="12.0" height="28" rx="4"><title>碼在沒開／只在沙盒 7 條</title></rect>
-<line class="tick" x1="375.0" y1="60" x2="375.0" y2="92"/>
-<text class="lbl" x="369.0" y="104" text-anchor="end">碼在沒開／只在沙盒 <tspan class="numt">7</tspan></text>
-<rect class="c-part" x="382.0" y="30" width="84.0" height="28" rx="4"><title>部分好了 43 條</title></rect>
-<text class="lbl" x="425.0" y="82" text-anchor="middle">部分好了 <tspan class="numt">43</tspan></text>
-<rect class="c-fail" x="468.0" y="30" width="6.0" height="28" rx="4"><title>沒過 4 條</title></rect>
-<line class="tick" x1="472.0" y1="60" x2="472.0" y2="92"/>
-<text class="lbl" x="472.0" y="104" text-anchor="middle">沒過 <tspan class="numt">4</tspan></text>
-<rect class="c-none" x="476.0" y="30" width="222.0" height="28" rx="4"><title>還沒碰 112 條</title></rect>
-<text class="lbl" x="588.0" y="82" text-anchor="middle">還沒碰 <tspan class="numt">112</tspan></text>
-<text class="small" x="588.0" y="102" text-anchor="middle">潛伏 47・死碼 62・正在影響 2・改不到 1</text>
-<text class="small" x="20" y="20">代理核心問題總表 340 條（截至 2026-10-26 16:30；分類由程式從問題總表＋修改紀錄算出）</text>
-<text class="lbl" x="20" y="128">正在影響運作的 120 條裡，118 條已經動手，還沒碰 2 條。</text>
-</svg></div><figcaption>確定好了＝每天在用的系統的紀錄（log、設定或服務狀態）證明目標真的達到；只在測試副本過、或離線重放過的，一律算觀察期（10/24 照這條把舊帳重新核對過）；觀察期＝已經上線、程式確定有作用，還在量用起來有沒有變好；碼在沒開／只在沙盒＝修法寫好了，但家裡的開關還關著、或只在測試副本，不算觀察期；部分好了＝目標只達到一部分；沒過＝量了沒達標，繼續修；還沒碰＝還沒動手。不會把「做了」算成「修好了」。</figcaption></figure></div></details>
-</section>
 <section class="main-sec" id="next">
   <h2>看完之後</h2>
   <ul class="nextlinks">
@@ -1060,7 +666,7 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
           <blockquote class="why">
             <p>這些 agent 是要長期使用的。記憶一旦丟了，就不是同一個 agent 了；所以記憶不能丟，也不能因為廠商下架、額度用完或漲價就被關掉。後面每一個工程決定都從這裡出發：要本地化、要把記憶保住、改核心之前一定先在沙盒試過。</p>
           </blockquote>
-          <p>每個角色有自己的記憶庫、個性和情緒狀態。每一輪對話都會先撈出相關的記憶，回覆之後再把這段對話寫回去，所以角色記得之前聊過什麼。會影響角色行為的修改，先評估影響、確認過才動：目前登記的 340 個問題裡，還沒改的 112 個中有 14 個標成「改之前要先評估對 agent 的影響」。</p>
+          <p>每個角色有自己的記憶庫、個性和情緒狀態。每一輪對話都會先撈出相關的記憶，回覆之後再把這段對話寫回去，所以角色記得之前聊過什麼。會影響角色行為的修改，先評估影響、確認過才動。</p>
         </div>
       </details>
 
@@ -1606,13 +1212,6 @@ details.ledger .tablewrap { max-height: 70vh; overflow: auto; }
             <div class="brief-row"><span class="bk">最後清</span><span>沒在用、或沒有實際作用的程式碼 <b class="num">124</b> 個</span></div>
           </div>
           <p>最常見的問題都長同一個樣子：功能看起來在、紀錄也在印，可是沒人量過它有沒有真的在做事。所以我要求每一顆模組都要有一個量得到的數字。</p>
-          <p><b>進度（截至 2026-10-25 05:12，照修改紀錄與問題總表）</b></p>
-          <div class="stats">
-            <div class="stat"><b>282</b><span>項修復，每次上線前跑閉環檢查，紅燈 0</span></div>
-            <div class="stat"><b>17</b><span>份還原快照（14 次正式更新＋3 次補做），每次都先在測試副本驗過</span></div>
-            <div class="stat"><b>47</b><span>個問題確定好了（另 127 個觀察期、43 個部分好了）</span></div>
-          </div>
-          <p>「觀察期」是修改已經上線、程式確定有作用，正在量用起來有沒有比較好；4 個量了沒過，繼續修；還沒碰的 112 個多數是潛伏問題和死碼。因為每一項都要求分層驗收，這些才分得出來，不會全部被算成「修好了」。</p>
         </div>
       </details>
 
